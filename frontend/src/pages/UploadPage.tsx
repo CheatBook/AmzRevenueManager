@@ -50,8 +50,8 @@ export default function UploadPage() {
   return (
     <div className="card">
       <h2>レポートアップロード</h2>
-      <p>Amazonペイメントレポート（TSV形式 or CSV形式）をアップロードしてください。</p>
-      <input type="file" accept=".csv,.tsv,.txt" onChange={handleFileChange} />
+      <p>Amazonペイメントレポート（Excel, TSV, CSV形式）をアップロードしてください。</p>
+      <input type="file" accept=".csv,.tsv,.txt,.xlsx" onChange={handleFileChange} />
       <button onClick={handleUpload} disabled={isLoading}>
         {isLoading ? '処理中...' : 'アップロードして集計'}
       </button>

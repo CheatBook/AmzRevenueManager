@@ -11,15 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.math.BigDecimal;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
 
 import io.github.cheatbook.amzrevenuemanager.domain.service.CsvService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.HierarchicalRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryService;
+import io.github.cheatbook.amzrevenuemanager.domain.service.AdvertisementService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuDailySummaryService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import java.time.LocalDate;
@@ -28,7 +25,6 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummar
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.HierarchicalSkuRevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.DailyRevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.DailySummaryWithParentSkuDto;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuRevenueForDailyDto;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,6 +38,7 @@ public class FileUploadController {
     private final HierarchicalRevenueSummaryService hierarchicalRevenueSummaryService;
     private final DailyRevenueSummaryService dailyRevenueSummaryService;
     private final ParentSkuDailySummaryService parentSkuDailySummaryService;
+    private final AdvertisementService advertisementService;
 
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
@@ -49,7 +46,14 @@ public class FileUploadController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
         }
         try {
-            csvService.processReportFile(file);
+            String fileName = file.getOriginalFilename();
+            if (fileName != null && fileName.contains("スポンサープロダクト広告")) {
+                advertisementService.processAdvertisementReport(file);
+            } else if (fileName != null && fileName.endsWith(".xlsx")) {
+                csvService.processExcelFile(file);
+            } else {
+                csvService.processReportFile(file);
+            }
             return ResponseEntity.ok("ファイルが正常にアップロードされ、データが処理されました。");
         } catch (Exception e) {
             e.printStackTrace();

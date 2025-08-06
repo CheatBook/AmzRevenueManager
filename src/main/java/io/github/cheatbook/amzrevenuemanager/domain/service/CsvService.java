@@ -2,11 +2,15 @@ package io.github.cheatbook.amzrevenuemanager.domain.service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,8 +18,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
@@ -32,18 +42,61 @@ public class CsvService {
     private final SkuNameService skuNameService;
 
     @Transactional
-    public void processReportFile(org.springframework.web.multipart.MultipartFile file) throws IOException {
+    public void processReportFile(MultipartFile file) throws IOException {
+        // AmazonのレポートはShift_JISの場合があるため文字コードを指定して読み込む
+        // ファイルの文字コードに合わせて "UTF-8" などに変更してください
+        try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(file.getInputStream(), "Shift_JIS"))) {
+            processCsvData(reader);
+        }
+    }
 
+    @Transactional
+    public void processExcelFile(MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(is)) {
+
+            Sheet sheet = workbook.getSheetAt(0); // 最初のシートを取得
+            StringBuilder csvData = new StringBuilder();
+            Iterator<Row> rowIterator = sheet.iterator();
+
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                Iterator<Cell> cellIterator = row.cellIterator();
+                List<String> cellValues = new ArrayList<>();
+                while (cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    switch (cell.getCellType()) {
+                        case STRING:
+                            cellValues.add(cell.getStringCellValue());
+                            break;
+                        case NUMERIC:
+                            // セルのデータ型に応じてフォーマットを調整
+                            cellValues.add(String.valueOf(cell.getNumericCellValue()));
+                            break;
+                        case BOOLEAN:
+                            cellValues.add(String.valueOf(cell.getBooleanCellValue()));
+                            break;
+                        default:
+                            cellValues.add("");
+                    }
+                }
+                csvData.append(String.join("\t", cellValues)).append("\n"); // タブ区切りで結合
+            }
+
+            try (Reader reader = new StringReader(csvData.toString())) {
+                processCsvData(reader);
+            }
+        }
+    }
+
+    private void processCsvData(Reader reader) throws IOException {
         CSVFormat format = CSVFormat.Builder.create(CSVFormat.TDF)
             .setHeader()              // 1番目のレコードをヘッダーとして扱う
             .setIgnoreHeaderCase(true)  // ヘッダーの大文字/小文字を無視する
             .setTrim(true)              // 値の前後の空白を削除する
             .build();                   // 設定を確定してCSVFormatオブジェクトを生成
 
-        // AmazonのレポートはShift_JISの場合があるため文字コードを指定して読み込む
-        // ファイルの文字コードに合わせて "UTF-8" などに変更してください
-        try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(file.getInputStream(), "Shift_JIS"));
-             CSVParser csvParser = new CSVParser(reader, format)) {
+        try (CSVParser csvParser = new CSVParser(reader, format)) {
 
             List<Transaction> transactions = new ArrayList<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
