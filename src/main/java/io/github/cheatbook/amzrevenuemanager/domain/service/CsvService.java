@@ -70,8 +70,8 @@ public class CsvService {
                             cellValues.add(cell.getStringCellValue());
                             break;
                         case NUMERIC:
-                            // セルのデータ型に応じてフォーマットを調整
-                            cellValues.add(String.valueOf(cell.getNumericCellValue()));
+                            // 指数表記を防ぐためにBigDecimalを使用
+                            cellValues.add(new BigDecimal(cell.getNumericCellValue()).toPlainString());
                             break;
                         case BOOLEAN:
                             cellValues.add(String.valueOf(cell.getBooleanCellValue()));
@@ -110,7 +110,29 @@ public class CsvService {
                 Transaction transaction = new Transaction();
                 transaction.setSettlementId(csvRecord.get("settlement-id"));
                 transaction.setTransactionType(csvRecord.get("transaction-type"));
-                transaction.setOrderId(csvRecord.get("order-id"));
+                String orderId = csvRecord.get("order-id");
+                transaction.setOrderId(orderId != null && !orderId.isEmpty() ? orderId : "N/A");
+
+                String orderItemCodeStr = csvRecord.get("order-item-code");
+                if (orderItemCodeStr == null || orderItemCodeStr.isEmpty()) {
+                    orderItemCodeStr = csvRecord.get("merchant-order-item-id");
+                }
+                if (orderItemCodeStr == null || orderItemCodeStr.isEmpty()) {
+                    orderItemCodeStr = csvRecord.get("merchant-adjustment-item-id");
+                }
+
+                Long orderItemCode;
+                if (orderItemCodeStr != null && !orderItemCodeStr.isEmpty() && !"N/A".equals(orderItemCodeStr)) {
+                    try {
+                        orderItemCode = new BigDecimal(orderItemCodeStr).longValue();
+                    } catch (NumberFormatException e) {
+                        orderItemCode = 0L;
+                    }
+                } else {
+                    orderItemCode = 0L;
+                }
+                transaction.setOrderItemCode(orderItemCode);
+                
                 transaction.setAmountType(csvRecord.get("amount-type"));
                 transaction.setAmountDescription(csvRecord.get("amount-description"));
                 transaction.setAmount(new BigDecimal(csvRecord.get("amount")));
