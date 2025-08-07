@@ -3,6 +3,7 @@ package io.github.cheatbook.amzrevenuemanager.domain.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,15 +18,24 @@ public class Advertisement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate date;
-    private String portfolioName;
+    @Column(name = "sku")
+    private String sku;
+
+    @Column(name = "asin")
+    private String asin;
+
+    @Column(name = "campaign_name")
     private String campaignName;
-    private String adGroupName;
-    private String targeting;
-    private String matchType;
-    private Integer impressions;
-    private Integer clicks;
-    private BigDecimal cost;
-    private BigDecimal sales;
-    private String advertisedSku;
+
+    @Column(name = "total_cost")
+    private BigDecimal totalCost;
+
+    @Column(name = "impression")
+    private Integer impression;
+
+    @Column(name = "click_count")
+    private Integer clickCount;
+
+    @Column(name = "date")
+    private LocalDate date;
 }

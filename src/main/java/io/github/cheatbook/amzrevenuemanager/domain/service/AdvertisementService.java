@@ -3,12 +3,10 @@ package io.github.cheatbook.amzrevenuemanager.domain.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -36,63 +34,53 @@ public class AdvertisementService {
 
             Sheet sheet = workbook.getSheetAt(0);
             List<Advertisement> advertisements = new ArrayList<>();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M月 dd, yyyy", Locale.JAPANESE);
             DataFormatter dataFormatter = new DataFormatter();
 
-            // 最初の2行はヘッダーなのでスキップ
+            // ヘッダー行を1行スキップ
             Iterator<Row> rowIterator = sheet.iterator();
-            if (rowIterator.hasNext()) rowIterator.next();
-            if (rowIterator.hasNext()) rowIterator.next();
+            if (rowIterator.hasNext()) {
+                rowIterator.next();
+            }
 
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
+                // 空白行の可能性を考慮
+                if(row.getCell(0) == null) {
+                    continue;
+                }
                 Advertisement ad = new Advertisement();
 
-                // DataFormatterを使用してセルの値を安全に文字列として取得
-                String dateStr = dataFormatter.formatCellValue(row.getCell(0));
-                if (dateStr != null && !dateStr.isEmpty()) {
-                    ad.setDate(LocalDate.parse(dateStr, formatter));
-                }
-
-                ad.setPortfolioName(dataFormatter.formatCellValue(row.getCell(1)));
+                // 各項目を正しい列から取得
+                ad.setSku(dataFormatter.formatCellValue(row.getCell(6)));
+                ad.setAsin(dataFormatter.formatCellValue(row.getCell(7)));
                 ad.setCampaignName(dataFormatter.formatCellValue(row.getCell(3)));
-                ad.setAdGroupName(dataFormatter.formatCellValue(row.getCell(4)));
-                ad.setTargeting(dataFormatter.formatCellValue(row.getCell(5)));
-                ad.setMatchType(dataFormatter.formatCellValue(row.getCell(6)));
-                ad.setAdvertisedSku(dataFormatter.formatCellValue(row.getCell(7)));
 
-                // Impressions
+                // Impression - 数値として直接取得
                 try {
-                    String impressionsStr = dataFormatter.formatCellValue(row.getCell(8));
-                    ad.setImpressions(Integer.parseInt(impressionsStr));
-                } catch (NumberFormatException e) {
-                    ad.setImpressions(0);
+                    ad.setImpression((int) row.getCell(8).getNumericCellValue());
+                } catch (Exception e) {
+                    ad.setImpression(0);
                 }
 
-                // Clicks
+                // Click Count - 数値として直接取得
                 try {
-                    String clicksStr = dataFormatter.formatCellValue(row.getCell(9));
-                    ad.setClicks(Integer.parseInt(clicksStr));
-                } catch (NumberFormatException e) {
-                    ad.setClicks(0);
+                    ad.setClickCount((int) row.getCell(9).getNumericCellValue());
+                } catch (Exception e) {
+                    ad.setClickCount(0);
                 }
 
-                // Cost
+                // Total Cost - 数値として直接取得
                 try {
-                    String costStr = dataFormatter.formatCellValue(row.getCell(11));
-                    String cleanedCostStr = costStr.replaceAll("[^\\d.-]", "");
-                    ad.setCost(new BigDecimal(cleanedCostStr));
-                } catch (NumberFormatException | ArithmeticException e) {
-                    ad.setCost(BigDecimal.ZERO);
+                    ad.setTotalCost(BigDecimal.valueOf(row.getCell(12).getNumericCellValue()));
+                } catch (Exception e) {
+                    ad.setTotalCost(BigDecimal.ZERO);
                 }
 
-                // Sales
+                // Date
                 try {
-                    String salesStr = dataFormatter.formatCellValue(row.getCell(13));
-                    String cleanedSalesStr = salesStr.replaceAll("[^\\d.-]", "");
-                    ad.setSales(new BigDecimal(cleanedSalesStr));
-                } catch (NumberFormatException | ArithmeticException e) {
-                    ad.setSales(BigDecimal.ZERO);
+                    ad.setDate(row.getCell(0).getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                } catch (Exception e) {
+                    ad.setDate(null);
                 }
                 
                 advertisements.add(ad);
