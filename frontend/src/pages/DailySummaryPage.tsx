@@ -5,6 +5,7 @@ interface ParentSkuRevenueForDaily {
   parentSkuName: string;
   totalRevenue: number;
   totalCommission: number;
+  totalAdCost: number;
   grossProfit: number;
   transactionCount: number;
 }
@@ -94,6 +95,7 @@ export default function DailySummaryPage() {
                 <th>親SKU名</th>
                 <th>総売上</th>
                 <th>手数料・その他費用</th>
+                <th>広告費</th>
                 <th>粗利益</th>
                 <th>注文数</th>
               </tr>
@@ -110,6 +112,7 @@ export default function DailySummaryPage() {
                     <td>{parentSkuSummary.parentSkuName}</td>
                     <td>{formatCurrency(parentSkuSummary.totalRevenue)}</td>
                     <td>{formatCurrency(parentSkuSummary.totalCommission)}</td>
+                    <td>{formatCurrency(parentSkuSummary.totalAdCost)}</td>
                     <td>{formatCurrency(parentSkuSummary.grossProfit)}</td>
                     <td>{parentSkuSummary.transactionCount} 件</td>
                   </tr>
@@ -118,6 +121,7 @@ export default function DailySummaryPage() {
                   <td>合計</td>
                   <td>{formatCurrency(dailySummary.dailyTotal.totalRevenue)}</td>
                   <td>{formatCurrency(dailySummary.dailyTotal.totalCommission)}</td>
+                  <td>{formatCurrency(dailySummary.dailyTotal.totalAdCost)}</td>
                   <td>{formatCurrency(dailySummary.dailyTotal.grossProfit)}</td>
                   <td>{dailySummary.dailyTotal.transactionCount} 件</td>
                 </tr>

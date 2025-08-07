@@ -27,6 +27,7 @@ public class ParentSkuMonthlySummaryDto {
         private String parentSkuJapaneseName;
         private BigDecimal totalSales;
         private BigDecimal totalFees;
+        private BigDecimal totalAdCost;
         private BigDecimal grossProfit;
         private int orderCount;
     }

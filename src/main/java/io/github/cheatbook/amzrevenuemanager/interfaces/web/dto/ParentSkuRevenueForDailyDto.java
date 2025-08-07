@@ -13,6 +13,7 @@ public class ParentSkuRevenueForDailyDto {
     private String parentSkuName;
     private BigDecimal totalRevenue;
     private BigDecimal totalCommission;
+    private BigDecimal totalAdCost;
     private BigDecimal grossProfit;
     private long transactionCount;
 }

@@ -5,6 +5,7 @@ interface ParentSkuRevenueForMonth {
     parentSkuJapaneseName: string;
     totalSales: number;
     totalFees: number;
+    totalAdCost: number;
     grossProfit: number;
     orderCount: number;
 }
@@ -35,6 +36,7 @@ const MonthlySummaryPage: React.FC = () => {
                         <th>親SKU</th>
                         <th>総売上</th>
                         <th>手数料・その他費用</th>
+                        <th>広告費</th>
                         <th>粗利益</th>
                         <th>注文数</th>
                     </tr>
@@ -47,6 +49,7 @@ const MonthlySummaryPage: React.FC = () => {
                                 <td>{item.parentSkuJapaneseName || item.parentSku}</td>
                                 <td>{item.totalSales.toFixed(2)}</td>
                                 <td>{item.totalFees.toFixed(2)}</td>
+                                <td>{item.totalAdCost.toFixed(2)}</td>
                                 <td>{item.grossProfit.toFixed(2)}</td>
                                 <td>{item.orderCount}</td>
                             </tr>
@@ -55,6 +58,7 @@ const MonthlySummaryPage: React.FC = () => {
                             <td>合計</td>
                             <td>{monthlyData.monthlyTotal.totalSales.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.totalFees.toFixed(2)}</td>
+                            <td>{monthlyData.monthlyTotal.totalAdCost.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.grossProfit.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.orderCount}</td>
                         </tr>

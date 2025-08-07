@@ -71,7 +71,7 @@ public class AdvertisementService {
 
                 // Total Cost - 数値として直接取得
                 try {
-                    ad.setTotalCost(BigDecimal.valueOf(row.getCell(12).getNumericCellValue()));
+                    ad.setTotalCost(BigDecimal.valueOf(row.getCell(12).getNumericCellValue()).negate());
                 } catch (Exception e) {
                     ad.setTotalCost(BigDecimal.ZERO);
                 }

@@ -11,8 +11,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
@@ -25,10 +27,13 @@ public class MonthlyRevenueSummaryService {
 
     private final TransactionRepository transactionRepository;
     private final SkuNameRepository skuNameRepository;
+    private final AdvertisementRepository advertisementRepository;
 
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
         List<Transaction> transactions = transactionRepository.findAll();
         List<SkuName> skuNames = skuNameRepository.findAll();
+        List<Advertisement> advertisements = advertisementRepository.findAll();
+
         Map<String, String> skuToParentSkuMap = skuNames.stream()
                 .filter(s -> s.getParentSku() != null)
                 .collect(Collectors.toMap(SkuName::getSku, SkuName::getParentSku, (existing, replacement) -> existing));
@@ -47,6 +52,11 @@ public class MonthlyRevenueSummaryService {
             transactionsByMonth.computeIfAbsent(yearMonth, k -> new ArrayList<>()).add(t);
         }
 
+        Map<YearMonth, Map<String, BigDecimal>> adCostByMonthAndSku = advertisements.stream()
+            .collect(Collectors.groupingBy(ad -> YearMonth.from(ad.getDate()),
+                Collectors.groupingBy(Advertisement::getSku,
+                    Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add))));
+
         List<ParentSkuMonthlySummaryDto> summaryList = new ArrayList<>();
         for (Map.Entry<YearMonth, List<Transaction>> entry : transactionsByMonth.entrySet()) {
             YearMonth yearMonth = entry.getKey();
@@ -62,6 +72,7 @@ public class MonthlyRevenueSummaryService {
                         .parentSkuJapaneseName("その他".equals(k) ? "その他" : parentSkuToJapaneseNameMap.getOrDefault(k, k))
                         .totalSales(BigDecimal.ZERO)
                         .totalFees(BigDecimal.ZERO)
+                        .totalAdCost(BigDecimal.ZERO)
                         .grossProfit(BigDecimal.ZERO)
                         .orderCount(0)
                         .build());
@@ -84,21 +95,37 @@ public class MonthlyRevenueSummaryService {
                 }
             }
 
+            adCostByMonthAndSku.getOrDefault(yearMonth, new HashMap<>()).forEach((sku, cost) -> {
+                String parentSku = skuToParentSkuMap.getOrDefault(sku, "N/A");
+                ParentSkuRevenueForMonthDto summary = parentSkuSummaryMap.computeIfAbsent(parentSku, k -> ParentSkuRevenueForMonthDto.builder()
+                    .parentSku(k)
+                    .parentSkuJapaneseName("その他".equals(k) ? "その他" : parentSkuToJapaneseNameMap.getOrDefault(k, k))
+                    .totalSales(BigDecimal.ZERO)
+                    .totalFees(BigDecimal.ZERO)
+                    .totalAdCost(BigDecimal.ZERO)
+                    .grossProfit(BigDecimal.ZERO)
+                    .orderCount(0)
+                    .build());
+                summary.setTotalAdCost(summary.getTotalAdCost().add(cost));
+            });
+
             ParentSkuRevenueForMonthDto monthlyTotal = ParentSkuRevenueForMonthDto.builder()
                 .parentSku("合計")
                 .parentSkuJapaneseName("合計")
                 .totalSales(BigDecimal.ZERO)
                 .totalFees(BigDecimal.ZERO)
+                .totalAdCost(BigDecimal.ZERO)
                 .grossProfit(BigDecimal.ZERO)
                 .orderCount(0)
                 .build();
 
             parentSkuSummaryMap.forEach((parentSku, summary) -> {
-                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()));
+                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()));
                 summary.setOrderCount((int) parentSkuToOrderIdsMap.getOrDefault(parentSku, new ArrayList<>()).stream().distinct().count());
 
                 monthlyTotal.setTotalSales(monthlyTotal.getTotalSales().add(summary.getTotalSales()));
                 monthlyTotal.setTotalFees(monthlyTotal.getTotalFees().add(summary.getTotalFees()));
+                monthlyTotal.setTotalAdCost(monthlyTotal.getTotalAdCost().add(summary.getTotalAdCost()));
                 monthlyTotal.setGrossProfit(monthlyTotal.getGrossProfit().add(summary.getGrossProfit()));
                 monthlyTotal.setOrderCount(monthlyTotal.getOrderCount() + summary.getOrderCount());
             });

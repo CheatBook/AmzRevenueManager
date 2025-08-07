@@ -16,6 +16,7 @@ public class DailyRevenueSummaryDto {
     private BigDecimal totalCommission;
     private BigDecimal totalShipping;
     private BigDecimal totalTax;
+    private BigDecimal totalAdCost;
     private BigDecimal grossProfit;
     private long transactionCount;
 }

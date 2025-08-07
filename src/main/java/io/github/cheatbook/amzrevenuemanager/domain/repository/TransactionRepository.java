@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.MonthlyRevenueSummaryDto;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
