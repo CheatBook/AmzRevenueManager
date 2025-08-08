@@ -36,10 +36,9 @@ export default function UploadPage() {
       });
 
       if (response.ok) {
-        setMessage('アップロード成功！結果ページに移動します。');
+        const responseMessage = await response.text();
+        setMessage(responseMessage);
         setError('');
-        // 成功したらサマリーページに遷移
-        navigate('/summary');
       } else {
         const errorMessage = await response.text();
         setError(errorMessage || `アップロード失敗: ${response.statusText}`);
