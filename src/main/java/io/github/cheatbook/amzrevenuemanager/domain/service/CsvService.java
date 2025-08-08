@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementId;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
@@ -98,7 +101,7 @@ public class CsvService {
 
         try (CSVParser csvParser = new CSVParser(reader, format)) {
 
-            List<Settlement> settlements = new ArrayList<>();
+            Map<SettlementId, Settlement> settlementMap = new HashMap<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
 
             for (CSVRecord csvRecord : csvParser) {
@@ -144,8 +147,6 @@ public class CsvService {
                     settlement.setQuantityPurchased(Integer.parseInt(quantityStr));
                 }
 
-                settlements.add(settlement);
-
                 // SKU名と日本語名を保存または更新
                 String sku = settlement.getSku();
                 if (sku != null && !sku.isEmpty()) {
@@ -164,8 +165,42 @@ public class CsvService {
                         }
                     );
                 }
+
+                SettlementId id = new SettlementId(
+                    settlement.getSettlementId(),
+                    settlement.getOrderId(),
+                    settlement.getOrderItemCode(),
+                    settlement.getAmountDescription(),
+                    settlement.getPostedDateTime()
+                );
+
+                Settlement existing = settlementMap.get(id);
+                if (existing != null) {
+                    existing.setAmount(existing.getAmount().add(settlement.getAmount()));
+                } else {
+                    settlementMap.put(id, settlement);
+                }
             }
-            settlementRepository.saveAll(settlements);
+
+            List<Settlement> settlementsToSave = new ArrayList<>();
+            for (Settlement newSettlement : settlementMap.values()) {
+                SettlementId id = new SettlementId(
+                    newSettlement.getSettlementId(),
+                    newSettlement.getOrderId(),
+                    newSettlement.getOrderItemCode(),
+                    newSettlement.getAmountDescription(),
+                    newSettlement.getPostedDateTime()
+                );
+                Optional<Settlement> existingSettlementOpt = settlementRepository.findById(id);
+                if (existingSettlementOpt.isPresent()) {
+                    Settlement existingSettlement = existingSettlementOpt.get();
+                    existingSettlement.setAmount(existingSettlement.getAmount().add(newSettlement.getAmount()));
+                    settlementsToSave.add(existingSettlement);
+                } else {
+                    settlementsToSave.add(newSettlement);
+                }
+            }
+            settlementRepository.saveAll(settlementsToSave);
         }
     }
 
