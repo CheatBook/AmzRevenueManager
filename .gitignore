@@ -31,4 +31,4 @@ build/
 
 ### VS Code ###
 .vscode/
-data/67302020299.txt
+data/*
