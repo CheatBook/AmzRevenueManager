@@ -28,8 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CsvService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final SkuNameService skuNameService;
 
     @Transactional
@@ -98,7 +98,7 @@ public class CsvService {
 
         try (CSVParser csvParser = new CSVParser(reader, format)) {
 
-            List<Transaction> transactions = new ArrayList<>();
+            List<Settlement> settlements = new ArrayList<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
 
             for (CSVRecord csvRecord : csvParser) {
@@ -107,11 +107,11 @@ public class CsvService {
                     continue;
                 }
 
-                Transaction transaction = new Transaction();
-                transaction.setSettlementId(csvRecord.get("settlement-id"));
-                transaction.setTransactionType(csvRecord.get("transaction-type"));
+                Settlement settlement = new Settlement();
+                settlement.setSettlementId(csvRecord.get("settlement-id"));
+                settlement.setTransactionType(csvRecord.get("transaction-type"));
                 String orderId = csvRecord.get("order-id");
-                transaction.setOrderId(orderId != null && !orderId.isEmpty() ? orderId : "N/A");
+                settlement.setOrderId(orderId != null && !orderId.isEmpty() ? orderId : "N/A");
 
                 String orderItemCodeStr = csvRecord.get("order-item-code");
                 if (orderItemCodeStr == null || orderItemCodeStr.isEmpty()) {
@@ -131,50 +131,50 @@ public class CsvService {
                 } else {
                     orderItemCode = 0L;
                 }
-                transaction.setOrderItemCode(orderItemCode);
+                settlement.setOrderItemCode(orderItemCode);
                 
-                transaction.setAmountType(csvRecord.get("amount-type"));
-                transaction.setAmountDescription(csvRecord.get("amount-description"));
-                transaction.setAmount(new BigDecimal(csvRecord.get("amount")));
-                transaction.setPostedDateTime(LocalDateTime.parse(csvRecord.get("posted-date-time"), formatter));
-                transaction.setSku(csvRecord.get("sku"));
+                settlement.setAmountType(csvRecord.get("amount-type"));
+                settlement.setAmountDescription(csvRecord.get("amount-description"));
+                settlement.setAmount(new BigDecimal(csvRecord.get("amount")));
+                settlement.setPostedDateTime(LocalDateTime.parse(csvRecord.get("posted-date-time"), formatter));
+                settlement.setSku(csvRecord.get("sku"));
 
                 String quantityStr = csvRecord.get("quantity-purchased");
                 if (quantityStr != null && !quantityStr.isEmpty()) {
-                    transaction.setQuantityPurchased(Integer.parseInt(quantityStr));
+                    settlement.setQuantityPurchased(Integer.parseInt(quantityStr));
                 }
 
-                transactions.add(transaction);
+                settlements.add(settlement);
 
                 // SKU名と日本語名を保存または更新
-                String sku = transaction.getSku();
+                String sku = settlement.getSku();
                 if (sku != null && !sku.isEmpty()) {
                     skuNameService.findBySku(sku).ifPresentOrElse(
                         existingSkuName -> {
                             // 既存のSKU名があれば更新（ここでは日本語名のみ更新）
-                            // existingSkuName.setJapaneseName(transaction.getProductName()); // もし商品名がCSVにあれば
+                            // existingSkuName.setJapaneseName(settlement.getProductName()); // もし商品名がCSVにあれば
                             skuNameService.saveSkuName(existingSkuName);
                         },
                         () -> {
                             // 新規SKU名として保存
                             SkuName newSkuName = new SkuName();
                             newSkuName.setSku(sku);
-                            // newSkuName.setJapaneseName(transaction.getProductName()); // もし商品名がCSVにあれば
+                            // newSkuName.setJapaneseName(settlement.getProductName()); // もし商品名がCSVにあれば
                             skuNameService.saveSkuName(newSkuName);
                         }
                     );
                 }
             }
-            transactionRepository.saveAll(transactions);
+            settlementRepository.saveAll(settlements);
         }
     }
 
     public RevenueSummaryDto calculateRevenueSummary(LocalDate startDate, LocalDate endDate) {
-        List<Transaction> transactions;
+        List<Settlement> settlements;
         if (startDate != null && endDate != null) {
-            transactions = transactionRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+            settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
         } else {
-            transactions = transactionRepository.findAll();
+            settlements = settlementRepository.findAll();
         }
 
         BigDecimal totalRevenue = BigDecimal.ZERO;
@@ -183,11 +183,11 @@ public class CsvService {
         BigDecimal totalTax = BigDecimal.ZERO;
 
         // "Order" と "Refund" のトランザクションのみを対象に集計
-        List<Transaction> orderTransactions = transactions.stream()
+        List<Settlement> orderSettlements = settlements.stream()
             .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
             .collect(Collectors.toList());
 
-        for(Transaction t : orderTransactions) {
+        for(Settlement t : orderSettlements) {
             switch (t.getAmountDescription()) {
                 case "Principal":
                     totalRevenue = totalRevenue.add(t.getAmount());
@@ -211,7 +211,7 @@ public class CsvService {
 
         BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalShipping); // 手数料等はマイナス値なので加算
         
-        long transactionCount = transactions.stream().map(Transaction::getOrderId).distinct().count();
+        long transactionCount = settlements.stream().map(Settlement::getOrderId).distinct().count();
 
         return new RevenueSummaryDto(
             totalRevenue, totalCommission, totalShipping, totalTax, grossProfit, transactionCount
@@ -219,28 +219,28 @@ public class CsvService {
     }
 
     public List<SkuRevenueSummaryDto> calculateSkuRevenueSummary() {
-        List<Transaction> transactions = transactionRepository.findAll();
+        List<Settlement> settlements = settlementRepository.findAll();
 
-        Map<String, List<Transaction>> transactionsBySku = transactions.stream()
+        Map<String, List<Settlement>> transactionsBySku = settlements.stream()
             .filter(t -> t.getSku() != null && !t.getSku().isEmpty())
-            .collect(Collectors.groupingBy(Transaction::getSku));
+            .collect(Collectors.groupingBy(Settlement::getSku));
 
         List<SkuRevenueSummaryDto> skuSummaries = new ArrayList<>();
 
-        for (Map.Entry<String, List<Transaction>> entry : transactionsBySku.entrySet()) {
+        for (Map.Entry<String, List<Settlement>> entry : transactionsBySku.entrySet()) {
             String sku = entry.getKey();
-            List<Transaction> skuTransactions = entry.getValue();
+            List<Settlement> skuTransactions = entry.getValue();
 
             BigDecimal totalRevenue = BigDecimal.ZERO;
             BigDecimal totalCommission = BigDecimal.ZERO;
             BigDecimal totalShipping = BigDecimal.ZERO;
             BigDecimal totalTax = BigDecimal.ZERO;
 
-            List<Transaction> orderTransactions = skuTransactions.stream()
+            List<Settlement> orderTransactions = skuTransactions.stream()
                 .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
                 .collect(Collectors.toList());
 
-            for (Transaction t : orderTransactions) {
+            for (Settlement t : orderTransactions) {
                 switch (t.getAmountDescription()) {
                     case "Principal":
                         totalRevenue = totalRevenue.add(t.getAmount());
@@ -263,13 +263,13 @@ public class CsvService {
             }
 
             BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalShipping);
-            Integer transactionCount = (int) skuTransactions.stream().map(Transaction::getOrderId).distinct().count();
+            Integer transactionCount = (int) skuTransactions.stream().map(Settlement::getOrderId).distinct().count();
             
             // order_idごとにquantity_purchasedの最大値を取得し、それらを合計
             Integer totalQuantityPurchased = skuTransactions.stream()
                 .filter(t -> t.getOrderId() != null && t.getQuantityPurchased() != null)
-                .collect(Collectors.groupingBy(Transaction::getOrderId,
-                    Collectors.mapping(Transaction::getQuantityPurchased,
+                .collect(Collectors.groupingBy(Settlement::getOrderId,
+                    Collectors.mapping(Settlement::getQuantityPurchased,
                         Collectors.reducing(0, Integer::max)))) // 各order_idで最大のquantity_purchasedを取得
                 .values().stream()
                 .mapToInt(Integer::intValue)

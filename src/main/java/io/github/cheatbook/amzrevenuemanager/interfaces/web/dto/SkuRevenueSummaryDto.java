@@ -16,6 +16,6 @@ public class SkuRevenueSummaryDto {
     private BigDecimal totalShipping;
     private BigDecimal totalTax;
     private BigDecimal grossProfit;
-    private Integer transactionCount; // order_idのユニーク数
+    private Integer settlementCount; // order_idのユニーク数
     private Integer totalQuantityPurchased; // quantity_purchasedの合計
 }

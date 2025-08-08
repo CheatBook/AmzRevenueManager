@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionId implements Serializable {
+public class SettlementId implements Serializable {
     private String settlementId;
-    private String transactionType;
     private String orderId;
     private Long orderItemCode;
     private String amountDescription;

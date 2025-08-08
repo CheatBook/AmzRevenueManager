@@ -13,14 +13,13 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table
-@IdClass(TransactionId.class)
-public class Transaction {
+@Table(name = "settlement")
+@IdClass(SettlementId.class)
+public class Settlement {
 
     @Id
     @Column(length = 20)
     private String settlementId;
-    @Id
     @Column(length = 20)
     private String transactionType;
     @Id

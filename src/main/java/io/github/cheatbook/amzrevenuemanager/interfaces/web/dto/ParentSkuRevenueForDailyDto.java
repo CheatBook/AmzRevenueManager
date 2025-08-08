@@ -15,5 +15,5 @@ public class ParentSkuRevenueForDailyDto {
     private BigDecimal totalCommission;
     private BigDecimal totalAdCost;
     private BigDecimal grossProfit;
-    private long transactionCount;
+    private long settlementCount;
 }

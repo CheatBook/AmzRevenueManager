@@ -3,10 +3,10 @@ package io.github.cheatbook.amzrevenuemanager.domain.service;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,18 +23,18 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuRevenue
 @RequiredArgsConstructor
 public class ParentSkuDailySummaryService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final SkuNameRepository skuNameRepository;
     private final AdvertisementRepository advertisementRepository;
 
     public List<DailySummaryWithParentSkuDto> getDailyParentSkuSummary(LocalDate startDate, LocalDate endDate) {
-        List<Transaction> transactions;
+        List<Settlement> settlements;
         List<Advertisement> advertisements;
         if (startDate != null && endDate != null) {
-            transactions = transactionRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+            settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
             advertisements = advertisementRepository.findByDateBetween(startDate, endDate);
         } else {
-            transactions = transactionRepository.findAll();
+            settlements = settlementRepository.findAll();
             advertisements = advertisementRepository.findAll();
         }
 
@@ -46,7 +46,7 @@ public class ParentSkuDailySummaryService {
                 .filter(skuName -> skuName.getParentSku() != null && !skuName.getParentSku().isEmpty() && skuName.getJapaneseName() != null)
                 .collect(Collectors.toMap(SkuName::getParentSku, SkuName::getJapaneseName, (existing, replacement) -> existing));
 
-        transactions.forEach(t -> {
+        settlements.forEach(t -> {
             if ("other-transaction".equals(t.getTransactionType())) {
                 t.setParentSku("その他");
             } else {
@@ -59,33 +59,33 @@ public class ParentSkuDailySummaryService {
                 Collectors.groupingBy(Advertisement::getSku,
                     Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add))));
 
-        Map<LocalDate, List<Transaction>> dailyTransactions = transactions.stream()
+        Map<LocalDate, List<Settlement>> dailyTransactions = settlements.stream()
                 .filter(t -> t.getParentSku() != null)
                 .collect(Collectors.groupingBy(t -> t.getPostedDateTime().toLocalDate()));
 
         List<DailySummaryWithParentSkuDto> result = dailyTransactions.entrySet().stream()
             .map(entry -> {
                 LocalDate date = entry.getKey();
-                List<Transaction> txns = entry.getValue();
+                List<Settlement> txns = entry.getValue();
 
-                Map<String, List<Transaction>> transactionsByParentSku = txns.stream()
-                    .collect(Collectors.groupingBy(Transaction::getParentSku));
+                Map<String, List<Settlement>> transactionsByParentSku = txns.stream()
+                    .collect(Collectors.groupingBy(Settlement::getParentSku));
 
                 List<ParentSkuRevenueForDailyDto> parentSkuSummaries = transactionsByParentSku.entrySet().stream()
                     .map(parentSkuEntry -> {
                         String parentSku = parentSkuEntry.getKey();
-                        List<Transaction> parentSkuTransactions = parentSkuEntry.getValue();
+                        List<Settlement> parentSkuTransactions = parentSkuEntry.getValue();
                         String parentSkuName = "その他".equals(parentSku) ? "その他" : parentSkuToNameMap.getOrDefault(parentSku, parentSku);
 
                         BigDecimal totalRevenue = BigDecimal.ZERO;
                         BigDecimal totalCommission = BigDecimal.ZERO;
                         BigDecimal totalAdCost = BigDecimal.ZERO;
-                        long transactionCount = 0;
+                        long settlementCount = 0;
                         if (!"その他".equals(parentSku)) {
-                            transactionCount = parentSkuTransactions.stream().map(Transaction::getOrderId).distinct().count();
+                            settlementCount = parentSkuTransactions.stream().map(Settlement::getOrderId).distinct().count();
                         }
 
-                        for (Transaction t : parentSkuTransactions) {
+                        for (Settlement t : parentSkuTransactions) {
                             String amountDescription = t.getAmountDescription() != null ? t.getAmountDescription().trim() : "";
                             String transactionType = t.getTransactionType() != null ? t.getTransactionType().trim() : "";
 
@@ -103,7 +103,7 @@ public class ParentSkuDailySummaryService {
                         }
                         
                         if (adCostByDateAndSku.containsKey(date)) {
-                            for (Transaction t : parentSkuTransactions) {
+                            for (Settlement t : parentSkuTransactions) {
                                 if (adCostByDateAndSku.get(date).containsKey(t.getSku())) {
                                     totalAdCost = totalAdCost.add(adCostByDateAndSku.get(date).get(t.getSku()));
                                 }
@@ -112,7 +112,7 @@ public class ParentSkuDailySummaryService {
 
                         BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalAdCost);
 
-                        return new ParentSkuRevenueForDailyDto(parentSkuName, totalRevenue, totalCommission, totalAdCost, grossProfit, transactionCount);
+                        return new ParentSkuRevenueForDailyDto(parentSkuName, totalRevenue, totalCommission, totalAdCost, grossProfit, settlementCount);
                     }).collect(Collectors.toList());
 
                 ParentSkuRevenueForDailyDto dailyTotal = new ParentSkuRevenueForDailyDto("合計", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0);
@@ -121,7 +121,7 @@ public class ParentSkuDailySummaryService {
                     dailyTotal.setTotalCommission(dailyTotal.getTotalCommission().add(summary.getTotalCommission()));
                     dailyTotal.setTotalAdCost(dailyTotal.getTotalAdCost().add(summary.getTotalAdCost()));
                     dailyTotal.setGrossProfit(dailyTotal.getGrossProfit().add(summary.getGrossProfit()));
-                    dailyTotal.setTransactionCount(dailyTotal.getTransactionCount() + summary.getTransactionCount());
+                    dailyTotal.setSettlementCount(dailyTotal.getSettlementCount() + summary.getSettlementCount());
                 }
 
                 return new DailySummaryWithParentSkuDto(date, parentSkuSummaries, dailyTotal);

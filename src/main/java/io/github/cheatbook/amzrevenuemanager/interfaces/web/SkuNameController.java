@@ -35,9 +35,9 @@ public class SkuNameController {
     }
 
     @GetMapping("/distinct-skus")
-    public ResponseEntity<List<String>> getDistinctSkusFromTransactions() {
+    public ResponseEntity<List<String>> getDistinctSkusFromSettlements() {
         try {
-            List<String> distinctSkus = skuNameService.findDistinctSkusFromTransactions();
+            List<String> distinctSkus = skuNameService.findDistinctSkusFromSettlements();
             return ResponseEntity.ok(distinctSkus);
         } catch (Exception e) {
             e.printStackTrace();

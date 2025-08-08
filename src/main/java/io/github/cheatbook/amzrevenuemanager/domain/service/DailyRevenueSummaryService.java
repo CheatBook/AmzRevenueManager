@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.DailyRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
 
@@ -19,22 +19,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DailyRevenueSummaryService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final AdvertisementRepository advertisementRepository;
 
     public List<DailyRevenueSummaryDto> getDailyRevenueSummary(LocalDate startDate, LocalDate endDate) {
-        List<Transaction> transactions;
+        List<Settlement> settlements;
         List<Advertisement> advertisements;
 
         if (startDate != null && endDate != null) {
-            transactions = transactionRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+            settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
             advertisements = advertisementRepository.findByDateBetween(startDate, endDate);
         } else {
-            transactions = transactionRepository.findAll();
+            settlements = settlementRepository.findAll();
             advertisements = advertisementRepository.findAll();
         }
 
-        Map<LocalDate, List<Transaction>> transactionsByDate = transactions.stream()
+        Map<LocalDate, List<Settlement>> transactionsByDate = settlements.stream()
                 .collect(Collectors.groupingBy(t -> t.getPostedDateTime().toLocalDate()));
         
         Map<LocalDate, BigDecimal> adCostByDate = advertisements.stream()
@@ -44,20 +44,20 @@ public class DailyRevenueSummaryService {
         return transactionsByDate.entrySet().stream()
                 .map(entry -> {
                     LocalDate date = entry.getKey();
-                    List<Transaction> dailyTransactions = entry.getValue();
+                    List<Settlement> dailyTransactions = entry.getValue();
 
                     BigDecimal totalRevenue = BigDecimal.ZERO;
                     BigDecimal totalCommission = BigDecimal.ZERO;
                     BigDecimal totalShipping = BigDecimal.ZERO;
                     BigDecimal totalTax = BigDecimal.ZERO;
                     BigDecimal totalAdCost = adCostByDate.getOrDefault(date, BigDecimal.ZERO);
-                    long transactionCount = dailyTransactions.stream().map(Transaction::getOrderId).distinct().count();
+                    long settlementCount = dailyTransactions.stream().map(Settlement::getOrderId).distinct().count();
 
-                    List<Transaction> orderTransactions = dailyTransactions.stream()
+                    List<Settlement> orderTransactions = dailyTransactions.stream()
                         .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
                         .collect(Collectors.toList());
 
-                    for (Transaction t : orderTransactions) {
+                    for (Settlement t : orderTransactions) {
                         switch (t.getAmountDescription()) {
                             case "Principal":
                                 totalRevenue = totalRevenue.add(t.getAmount());
@@ -81,7 +81,7 @@ public class DailyRevenueSummaryService {
 
                     BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalShipping).add(totalAdCost);
 
-                    return new DailyRevenueSummaryDto(date, totalRevenue, totalCommission, totalShipping, totalTax, totalAdCost, grossProfit, transactionCount);
+                    return new DailyRevenueSummaryDto(date, totalRevenue, totalCommission, totalShipping, totalTax, totalAdCost, grossProfit, settlementCount);
                 })
                 .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
                 .collect(Collectors.toList());

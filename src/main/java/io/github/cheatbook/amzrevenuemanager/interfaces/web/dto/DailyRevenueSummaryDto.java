@@ -18,5 +18,5 @@ public class DailyRevenueSummaryDto {
     private BigDecimal totalTax;
     private BigDecimal totalAdCost;
     private BigDecimal grossProfit;
-    private long transactionCount;
+    private long settlementCount;
 }

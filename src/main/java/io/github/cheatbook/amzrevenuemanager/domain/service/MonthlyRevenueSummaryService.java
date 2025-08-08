@@ -13,10 +13,10 @@ import org.springframework.stereotype.Service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +25,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MonthlyRevenueSummaryService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final SkuNameRepository skuNameRepository;
     private final AdvertisementRepository advertisementRepository;
 
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
-        List<Transaction> transactions = transactionRepository.findAll();
+        List<Settlement> settlements = settlementRepository.findAll();
         List<SkuName> skuNames = skuNameRepository.findAll();
         List<Advertisement> advertisements = advertisementRepository.findAll();
 
@@ -41,8 +41,8 @@ public class MonthlyRevenueSummaryService {
                 .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty() && s.getJapaneseName() != null)
                 .collect(Collectors.toMap(SkuName::getParentSku, SkuName::getJapaneseName, (existing, replacement) -> existing));
 
-        Map<YearMonth, List<Transaction>> transactionsByMonth = new HashMap<>();
-        for (Transaction t : transactions) {
+        Map<YearMonth, List<Settlement>> transactionsByMonth = new HashMap<>();
+        for (Settlement t : settlements) {
             if ("other-transaction".equals(t.getTransactionType())) {
                 t.setParentSku("その他");
             } else {
@@ -58,14 +58,14 @@ public class MonthlyRevenueSummaryService {
                     Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add))));
 
         List<ParentSkuMonthlySummaryDto> summaryList = new ArrayList<>();
-        for (Map.Entry<YearMonth, List<Transaction>> entry : transactionsByMonth.entrySet()) {
+        for (Map.Entry<YearMonth, List<Settlement>> entry : transactionsByMonth.entrySet()) {
             YearMonth yearMonth = entry.getKey();
-            List<Transaction> monthlyTransactions = entry.getValue();
+            List<Settlement> monthlyTransactions = entry.getValue();
 
             Map<String, ParentSkuRevenueForMonthDto> parentSkuSummaryMap = new HashMap<>();
             Map<String, List<String>> parentSkuToOrderIdsMap = new HashMap<>();
 
-            for (Transaction t : monthlyTransactions) {
+            for (Settlement t : monthlyTransactions) {
                 String parentSku = t.getParentSku() != null ? t.getParentSku() : "N/A";
                 ParentSkuRevenueForMonthDto summary = parentSkuSummaryMap.computeIfAbsent(parentSku, k -> ParentSkuRevenueForMonthDto.builder()
                         .parentSku(k)

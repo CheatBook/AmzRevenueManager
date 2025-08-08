@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.HierarchicalSkuRevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +25,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class HierarchicalRevenueSummaryService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final SkuNameRepository skuNameRepository;
 
     public List<HierarchicalSkuRevenueSummaryDto> getHierarchicalSkuRevenueSummary(LocalDate startDate, LocalDate endDate) {
-        List<Transaction> allTransactions;
+        List<Settlement> allSettlements;
         if (startDate != null && endDate != null) {
-            allTransactions = transactionRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+            allSettlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
         } else {
-            allTransactions = transactionRepository.findAll();
+            allSettlements = settlementRepository.findAll();
         }
         List<SkuName> skuNames = skuNameRepository.findAll();
 
@@ -42,7 +42,7 @@ public class HierarchicalRevenueSummaryService {
                 .collect(Collectors.toMap(SkuName::getSku, SkuName::getJapaneseName, (name1, name2) -> name1));
 
         // 2. Filter for relevant transactions
-        List<Transaction> orderTransactions = allTransactions.stream()
+        List<Settlement> orderSettlements = allSettlements.stream()
             .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
             .collect(Collectors.toList());
 
@@ -50,8 +50,8 @@ public class HierarchicalRevenueSummaryService {
         Map<String, SkuRevenueSummaryDto> skuSummaryMap = new HashMap<>();
         Map<String, Map<String, Integer>> skuToOrderIdQuantityMap = new HashMap<>(); // SKU -> OrderId -> Quantity
 
-        for (Transaction transaction : orderTransactions) {
-            String sku = transaction.getSku();
+        for (Settlement settlement : orderSettlements) {
+            String sku = settlement.getSku();
             if (sku == null || sku.isEmpty()) {
                 continue;
             }
@@ -64,15 +64,15 @@ public class HierarchicalRevenueSummaryService {
                 newDto.setTotalCommission(BigDecimal.ZERO);
                 newDto.setTotalShipping(BigDecimal.ZERO);
                 newDto.setTotalTax(BigDecimal.ZERO);
-                newDto.setTransactionCount(0);
+                newDto.setSettlementCount(0);
                 newDto.setTotalQuantityPurchased(0);
                 return newDto;
             });
 
-            BigDecimal amount = transaction.getAmount();
-            String amountDescription = transaction.getAmountDescription();
-            Integer quantityPurchased = transaction.getQuantityPurchased() != null ? transaction.getQuantityPurchased() : 0;
-            String orderId = transaction.getOrderId();
+            BigDecimal amount = settlement.getAmount();
+            String amountDescription = settlement.getAmountDescription();
+            Integer quantityPurchased = settlement.getQuantityPurchased() != null ? settlement.getQuantityPurchased() : 0;
+            String orderId = settlement.getOrderId();
 
             if (amountDescription != null) {
                  switch (amountDescription) {
@@ -101,15 +101,15 @@ public class HierarchicalRevenueSummaryService {
                         break;
                 }
             }
-            // transactionCountはorderIdのユニーク数で計算するため、ここでは更新しない
+            // settlementCountはorderIdのユニーク数で計算するため、ここでは更新しない
         }
         
         // 各SKUのorderIdのユニーク数を計算
-        orderTransactions.stream() // allTransactionsではなくorderTransactionsを使用
-            .collect(Collectors.groupingBy(Transaction::getSku, Collectors.mapping(Transaction::getOrderId, Collectors.toSet())))
+        orderSettlements.stream() // allSettlementsではなくorderSettlementsを使用
+            .collect(Collectors.groupingBy(Settlement::getSku, Collectors.mapping(Settlement::getOrderId, Collectors.toSet())))
             .forEach((sku, orderIds) -> {
                 if (skuSummaryMap.containsKey(sku)) {
-                    skuSummaryMap.get(sku).setTransactionCount(orderIds.size());
+                    skuSummaryMap.get(sku).setSettlementCount(orderIds.size());
                 }
             });
 
@@ -167,7 +167,7 @@ public class HierarchicalRevenueSummaryService {
                 parentSummary.setTotalShipping(parentSummary.getTotalShipping().add(childSummary.getTotalShipping()));
                 parentSummary.setTotalTax(parentSummary.getTotalTax().add(childSummary.getTotalTax()));
                 parentSummary.setGrossProfit(parentSummary.getGrossProfit().add(childSummary.getGrossProfit())); // GrossProfitも加算
-                parentSummary.setTransactionCount(parentSummary.getTransactionCount() + childSummary.getTransactionCount());
+                parentSummary.setSettlementCount(parentSummary.getSettlementCount() + childSummary.getSettlementCount());
                 parentSummary.setTotalQuantityPurchased(parentSummary.getTotalQuantityPurchased() + childSummary.getTotalQuantityPurchased()); // 新しいフィールドを加算
             }
 

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Transaction;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +18,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ParentSkuRevenueSummaryService {
 
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
     private final SkuNameRepository skuNameRepository;
 
     public List<SkuRevenueSummaryDto> getParentSkuRevenueSummary() {
-        List<Transaction> transactions = transactionRepository.findAll();
+        List<Settlement> settlements = settlementRepository.findAll();
         List<SkuName> skuNames = skuNameRepository.findAll();
 
         Map<String, String> skuToParentSkuMap = skuNames.stream()
@@ -32,16 +32,16 @@ public class ParentSkuRevenueSummaryService {
         Map<String, String> skuToJapaneseNameMap = skuNames.stream()
                 .collect(Collectors.toMap(SkuName::getSku, SkuName::getJapaneseName));
 
-        Map<String, SkuRevenueSummaryDto> summaryMap = transactions.stream()
-                .collect(Collectors.groupingBy(transaction -> {
-                    String sku = transaction.getSku();
+        Map<String, SkuRevenueSummaryDto> summaryMap = settlements.stream()
+                .collect(Collectors.groupingBy(settlement -> {
+                    String sku = settlement.getSku();
                     return skuToParentSkuMap.getOrDefault(sku, sku); // 親SKUがあれば親SKU、なければ自身のSKU
                 }, Collectors.reducing(
                         new SkuRevenueSummaryDto("", "", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0), // 新しいコンストラクタに合わせる
-                        transaction -> {
-                            BigDecimal amount = transaction.getAmount();
-                            String amountDescription = transaction.getAmountDescription(); // amountTypeをamountDescriptionに変更
-                            Integer quantityPurchased = transaction.getQuantityPurchased() != null ? transaction.getQuantityPurchased() : 0;
+                        settlement -> {
+                            BigDecimal amount = settlement.getAmount();
+                            String amountDescription = settlement.getAmountDescription(); // amountTypeをamountDescriptionに変更
+                            Integer quantityPurchased = settlement.getQuantityPurchased() != null ? settlement.getQuantityPurchased() : 0;
 
                             BigDecimal totalRevenue = BigDecimal.ZERO;
                             BigDecimal totalCommission = BigDecimal.ZERO;
@@ -72,14 +72,14 @@ public class ParentSkuRevenueSummaryService {
                             }
 
                             return new SkuRevenueSummaryDto(
-                                    transaction.getSku(), // 仮のSKU、後で親SKUに置き換える
+                                    settlement.getSku(), // 仮のSKU、後で親SKUに置き換える
                                     "", // 仮の日本語名、後で親SKUの日本語名に置き換える
                                     totalRevenue,
                                     totalCommission,
                                     totalShipping,
                                     totalTax,
                                     totalRevenue.add(totalCommission).add(totalShipping), // GrossProfitの計算を修正
-                                    transaction.getOrderId() != null ? 1 : 0, // orderIdのユニーク数をカウントするため、ここでは1または0
+                                    settlement.getOrderId() != null ? 1 : 0, // orderIdのユニーク数をカウントするため、ここでは1または0
                                     quantityPurchased
                             );
                         },
@@ -89,22 +89,22 @@ public class ParentSkuRevenueSummaryService {
                             dto1.setTotalShipping(dto1.getTotalShipping().add(dto2.getTotalShipping()));
                             dto1.setTotalTax(dto1.getTotalTax().add(dto2.getTotalTax()));
                             dto1.setGrossProfit(dto1.getGrossProfit().add(dto2.getGrossProfit())); // GrossProfitも加算
-                            dto1.setTransactionCount(dto1.getTransactionCount() + dto2.getTransactionCount());
+                            dto1.setSettlementCount(dto1.getSettlementCount() + dto2.getSettlementCount());
                             dto1.setTotalQuantityPurchased(dto1.getTotalQuantityPurchased() + dto2.getTotalQuantityPurchased()); // 新しいフィールドを加算
                             return dto1;
                         }
                 )));
 
         // orderIdのユニーク数を正確に計算するために、別途処理を追加
-        transactions.stream()
+        settlements.stream()
             .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
-            .collect(Collectors.groupingBy(transaction -> {
-                String sku = transaction.getSku();
+            .collect(Collectors.groupingBy(settlement -> {
+                String sku = settlement.getSku();
                 return skuToParentSkuMap.getOrDefault(sku, sku);
-            }, Collectors.mapping(Transaction::getOrderId, Collectors.toSet())))
+            }, Collectors.mapping(Settlement::getOrderId, Collectors.toSet())))
             .forEach((parentOrChildSku, orderIds) -> {
                 if (summaryMap.containsKey(parentOrChildSku)) {
-                    summaryMap.get(parentOrChildSku).setTransactionCount(orderIds.size());
+                    summaryMap.get(parentOrChildSku).setSettlementCount(orderIds.size());
                 }
             });
 

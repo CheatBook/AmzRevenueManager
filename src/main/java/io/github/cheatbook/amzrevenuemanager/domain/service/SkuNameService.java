@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.repository.TransactionRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,14 +17,14 @@ import lombok.RequiredArgsConstructor;
 public class SkuNameService {
 
     private final SkuNameRepository skuNameRepository;
-    private final TransactionRepository transactionRepository;
+    private final SettlementRepository settlementRepository;
 
     public List<SkuName> findAllSkuNames() {
         return skuNameRepository.findAll();
     }
 
-    public List<String> findDistinctSkusFromTransactions() {
-        return transactionRepository.findDistinctSkus();
+    public List<String> findDistinctSkusFromSettlements() {
+        return settlementRepository.findDistinctSkus();
     }
 
     @Transactional
