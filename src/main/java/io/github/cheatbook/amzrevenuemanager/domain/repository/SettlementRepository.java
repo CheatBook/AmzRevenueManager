@@ -14,5 +14,5 @@ public interface SettlementRepository extends JpaRepository<Settlement, Settleme
     @Query("SELECT DISTINCT t.sku FROM Settlement t")
     List<String> findDistinctSkus();
     List<Settlement> findByPostedDateTimeBetween(LocalDateTime start, LocalDateTime end);
-
+    boolean existsBySettlementId(String settlementId);
 }

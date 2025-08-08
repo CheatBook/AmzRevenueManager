@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -11,17 +12,19 @@ export default function UploadPage() {
     if (event.target.files) {
       setSelectedFile(event.target.files[0]);
       setMessage('');
+      setError('');
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setMessage('ファイルが選択されていません。');
+      setError('ファイルが選択されていません。');
       return;
     }
 
     setIsLoading(true);
     setMessage('ファイルをアップロード中です...');
+    setError('');
     const formData = new FormData();
     formData.append('file', selectedFile);
 
@@ -34,14 +37,18 @@ export default function UploadPage() {
 
       if (response.ok) {
         setMessage('アップロード成功！結果ページに移動します。');
+        setError('');
         // 成功したらサマリーページに遷移
         navigate('/summary');
       } else {
-        setMessage(`アップロード失敗: ${response.statusText}`);
+        const errorMessage = await response.text();
+        setError(errorMessage || `アップロード失敗: ${response.statusText}`);
+        setMessage('');
       }
-    } catch (error) {
-      console.error('アップロードエラー:', error);
-      setMessage('アップロード中にエラーが発生しました。');
+    } catch (err) {
+      console.error('アップロードエラー:', err);
+      setError('アップロード中にエラーが発生しました。');
+      setMessage('');
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +62,8 @@ export default function UploadPage() {
       <button onClick={handleUpload} disabled={isLoading}>
         {isLoading ? '処理中...' : 'アップロードして集計'}
       </button>
-      {message && <p>{message}</p>}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
+      {error && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{error}</p>}
     </div>
   );
 }

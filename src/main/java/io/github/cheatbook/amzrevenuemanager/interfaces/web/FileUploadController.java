@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import io.github.cheatbook.amzrevenuemanager.domain.service.CsvService;
+import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.HierarchicalRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryService;
@@ -55,6 +56,8 @@ public class FileUploadController {
                 csvService.processReportFile(file);
             }
             return ResponseEntity.ok("ファイルが正常にアップロードされ、データが処理されました。");
+        } catch (DuplicateSettlementIdException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
