@@ -45,16 +45,16 @@ public class CsvService {
     private final SkuNameService skuNameService;
 
     @Transactional
-    public void processReportFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
+    public String processReportFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
         // AmazonのレポートはShift_JISの場合があるため文字コードを指定して読み込む
         // ファイルの文字コードに合わせて "UTF-8" などに変更してください
         try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(file.getInputStream(), "Shift_JIS"))) {
-            processCsvData(reader);
+            return processCsvData(reader);
         }
     }
 
     @Transactional
-    public void processExcelFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
+    public String processExcelFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
 
@@ -87,12 +87,12 @@ public class CsvService {
             }
 
             try (Reader reader = new StringReader(csvData.toString())) {
-                processCsvData(reader);
+                return processCsvData(reader);
             }
         }
     }
 
-    private void processCsvData(Reader reader) throws IOException, DuplicateSettlementIdException {
+    private String processCsvData(Reader reader) throws IOException, DuplicateSettlementIdException {
         CSVFormat format = CSVFormat.Builder.create(CSVFormat.TDF)
             .setHeader()              // 1番目のレコードをヘッダーとして扱う
             .setIgnoreHeaderCase(true)  // ヘッダーの大文字/小文字を無視する
@@ -103,47 +103,39 @@ public class CsvService {
 
             Iterator<CSVRecord> csvIterator = csvParser.iterator();
             if (!csvIterator.hasNext()) {
-                return; // ファイルが空の場合は何もしない
+                return null; // ファイルが空の場合は何もしない
             }
 
-            // 最初の行を読み取り、settlement-idの重複をチェック
-            CSVRecord firstRecord = csvIterator.next();
-            String firstSettlementId = firstRecord.get("settlement-id");
-            if (settlementRepository.existsBySettlementId(firstSettlementId)) {
-                throw new DuplicateSettlementIdException("Settlement ID " + firstSettlementId + " は既に存在します。");
+            // 最初の行（集計行）を読み取り
+            CSVRecord summaryRecord = csvIterator.next();
+            String settlementId = summaryRecord.get("settlement-id");
+            if (settlementRepository.existsBySettlementId(settlementId)) {
+                throw new DuplicateSettlementIdException("Settlement ID " + settlementId + " は既に存在します。");
             }
+            BigDecimal totalAmountFromFile = new BigDecimal(summaryRecord.get("total-amount"));
 
             Map<SettlementId, Settlement> settlementMap = new HashMap<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
 
-            // 最初の行を処理
-            processRecord(firstRecord, settlementMap, formatter);
-
-            // 残りの行を処理
+            // 残りの行（明細行）を処理
             while (csvIterator.hasNext()) {
                 CSVRecord csvRecord = csvIterator.next();
                 processRecord(csvRecord, settlementMap, formatter);
             }
 
-            List<Settlement> settlementsToSave = new ArrayList<>();
-            for (Settlement newSettlement : settlementMap.values()) {
-                SettlementId id = new SettlementId(
-                    newSettlement.getSettlementId(),
-                    newSettlement.getOrderId(),
-                    newSettlement.getOrderItemCode(),
-                    newSettlement.getAmountDescription(),
-                    newSettlement.getPostedDateTime()
-                );
-                Optional<Settlement> existingSettlementOpt = settlementRepository.findById(id);
-                if (existingSettlementOpt.isPresent()) {
-                    Settlement existingSettlement = existingSettlementOpt.get();
-                    existingSettlement.setAmount(existingSettlement.getAmount().add(newSettlement.getAmount()));
-                    settlementsToSave.add(existingSettlement);
-                } else {
-                    settlementsToSave.add(newSettlement);
-                }
+            settlementRepository.saveAll(settlementMap.values());
+
+            // 合計金額を計算して検証
+            BigDecimal calculatedTotalAmount = settlementMap.values().stream()
+                    .map(Settlement::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            String warningMessage = null;
+            if (totalAmountFromFile.compareTo(calculatedTotalAmount) != 0) {
+                warningMessage = String.format("警告: ファイルの合計金額(%s)と計算された合計金額(%s)が一致しません。", totalAmountFromFile.toPlainString(), calculatedTotalAmount.toPlainString());
             }
-            settlementRepository.saveAll(settlementsToSave);
+
+            return warningMessage;
         }
     }
 

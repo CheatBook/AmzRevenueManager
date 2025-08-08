@@ -48,14 +48,20 @@ public class FileUploadController {
         }
         try {
             String fileName = file.getOriginalFilename();
+            String warningMessage = null;
             if (fileName != null && fileName.contains("スポンサープロダクト広告")) {
                 advertisementService.processAdvertisementReport(file);
             } else if (fileName != null && fileName.endsWith(".xlsx")) {
-                csvService.processExcelFile(file);
+                warningMessage = csvService.processExcelFile(file);
             } else {
-                csvService.processReportFile(file);
+                warningMessage = csvService.processReportFile(file);
             }
-            return ResponseEntity.ok("ファイルが正常にアップロードされ、データが処理されました。");
+            
+            String responseMessage = "ファイルが正常にアップロードされ、データが処理されました。";
+            if (warningMessage != null) {
+                responseMessage += "\n" + warningMessage;
+            }
+            return ResponseEntity.ok(responseMessage);
         } catch (DuplicateSettlementIdException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
