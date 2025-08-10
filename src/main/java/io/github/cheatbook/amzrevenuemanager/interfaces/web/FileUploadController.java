@@ -64,11 +64,8 @@ public class FileUploadController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
         }
         try {
-            String fileName = file.getOriginalFilename();
             String warningMessage = null;
-            if (fileName != null && fileName.contains("スポンサープロダクト広告")) {
-                advertisementService.processAdvertisementReport(file);
-            } else if (fileName != null && fileName.endsWith(".xlsx")) {
+            if (file.getOriginalFilename() != null && file.getOriginalFilename().endsWith(".xlsx")) {
                 warningMessage = csvService.processExcelFile(file);
             } else {
                 warningMessage = csvService.processReportFile(file);
@@ -85,6 +82,21 @@ public class FileUploadController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("ファイルの処理中にエラーが発生しました: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload-advertisement")
+    public ResponseEntity<String> handleAdvertisementUpload(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+        }
+        try {
+            advertisementService.processAdvertisementReport(file);
+            return ResponseEntity.ok("広告レポートが正常にアップロードされ、処理されました。");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("広告レポートの処理中にエラーが発生しました: " + e.getMessage());
         }
     }
 
