@@ -126,7 +126,7 @@ tbody tr:hover {
 /* @keyframes logo-spin と @media (prefers-reduced-motion: no-preference) は直接削除 */
 
 /* フォームのスタイリング */
-form div {
+.form-group {
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
@@ -239,7 +239,7 @@ tbody tr.child-row {
   .card h2 {
     font-size: 1.5em;
   }
-  table, thead, tbody, th, td, tr {
+  main table, main thead, main tbody, main th, main td, main tr {
     display: block;
   }
   thead tr {
@@ -297,63 +297,4 @@ tbody tr.child-row {
   }
 }
 
-/* フォームのスタイリング */
-form div {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
 
-form label {
-  margin-bottom: 0.5rem;
-  color: #334155;
-  font-weight: 600;
-}
-
-input[type="text"],
-input[type="number"],
-select {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-select:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-  outline: none;
-}
-
-button[type="submit"] {
-  background-color: #4a90e2;
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
-  margin-top: 1rem;
-}
-
-button[type="submit"]:hover {
-  background-color: #357ABD;
-}
-
-button[type="submit"]:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-p {
-  margin-top: 1rem;
-  font-size: 1rem;
-  color: #333;
-}

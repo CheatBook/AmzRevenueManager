@@ -1,0 +1,67 @@
+package io.github.cheatbook.amzrevenuemanager.interfaces.web;
+
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
+import io.github.cheatbook.amzrevenuemanager.domain.service.PurchaseService;
+import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/purchases")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+public class PurchaseController {
+
+    private final PurchaseService purchaseService;
+
+    @PostMapping
+    public ResponseEntity<Purchase> savePurchase(@RequestBody PurchaseDto purchaseDto) {
+        try {
+            Purchase savedPurchase = purchaseService.savePurchase(purchaseDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Purchase>> getAllPurchases() {
+        try {
+            List<Purchase> purchases = purchaseService.getAllPurchases();
+            return ResponseEntity.ok(purchases);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/{parentSku}/{purchaseDate}")
+    public ResponseEntity<Purchase> updatePurchase(
+            @PathVariable String parentSku,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
+            @RequestBody PurchaseDto purchaseDto) {
+        try {
+            Purchase updatedPurchase = purchaseService.updatePurchase(parentSku, purchaseDate, purchaseDto);
+            return ResponseEntity.ok(updatedPurchase);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}
