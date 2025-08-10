@@ -16,7 +16,7 @@ export default function UploadPage() {
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (isSalesDate = false) => {
     if (!selectedFile) {
       setError('ファイルが選択されていません。');
       return;
@@ -29,8 +29,8 @@ export default function UploadPage() {
     formData.append('file', selectedFile);
 
     try {
-      // このAPIパスは後でバックエンドを修正する際に有効になります
-      const response = await fetch('/api/sales/upload', {
+      const url = isSalesDate ? '/api/sales/upload-sales-date' : '/api/sales/upload';
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
@@ -54,15 +54,25 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="card">
-      <h2>レポートアップロード</h2>
-      <p>Amazonペイメントレポート（Excel, TSV, CSV形式）をアップロードしてください。</p>
-      <input type="file" accept=".csv,.tsv,.txt,.xlsx" onChange={handleFileChange} />
-      <button onClick={handleUpload} disabled={isLoading}>
-        {isLoading ? '処理中...' : 'アップロードして集計'}
-      </button>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {error && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{error}</p>}
+    <div>
+      <div className="card">
+        <h2>レポートアップロード</h2>
+        <p>Amazonペイメントレポート（Excel, TSV, CSV形式）をアップロードしてください。</p>
+        <input type="file" accept=".csv,.tsv,.txt,.xlsx" onChange={handleFileChange} />
+        <button onClick={() => handleUpload()} disabled={isLoading}>
+          {isLoading ? '処理中...' : 'アップロードして集計'}
+        </button>
+        {message && <p style={{ color: 'green' }}>{message}</p>}
+        {error && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{error}</p>}
+      </div>
+      <div className="card">
+        <h2>販売日管理レポートアップロード</h2>
+        <p>販売日管理レポート（TXT形式）をアップロードしてください。</p>
+        <input type="file" accept=".txt" onChange={handleFileChange} />
+        <button onClick={() => handleUpload(true)} disabled={isLoading}>
+          {isLoading ? '処理中...' : 'アップロード'}
+        </button>
+      </div>
     </div>
   );
 }

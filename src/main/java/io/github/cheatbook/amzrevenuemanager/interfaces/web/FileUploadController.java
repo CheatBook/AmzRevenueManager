@@ -19,6 +19,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.service.HierarchicalRevenueS
 import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.AdvertisementService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuDailySummaryService;
+import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -40,6 +41,22 @@ public class FileUploadController {
     private final DailyRevenueSummaryService dailyRevenueSummaryService;
     private final ParentSkuDailySummaryService parentSkuDailySummaryService;
     private final AdvertisementService advertisementService;
+    private final SalesDateService salesDateService;
+
+    @PostMapping("/upload-sales-date")
+    public ResponseEntity<String> handleSalesDateUpload(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+        }
+        try {
+            salesDateService.saveSalesDates(file);
+            return ResponseEntity.ok("販売日データが正常にアップロードされ、処理されました。");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("販売日データの処理中にエラーが発生しました: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
