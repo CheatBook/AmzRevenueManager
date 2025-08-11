@@ -13,11 +13,14 @@ import org.springframework.stereotype.Service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.PurchaseRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
+import java.util.Optional;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto;
 import lombok.RequiredArgsConstructor;
 
@@ -28,11 +31,34 @@ public class MonthlyRevenueSummaryService {
     private final SettlementRepository settlementRepository;
     private final SkuNameRepository skuNameRepository;
     private final AdvertisementRepository advertisementRepository;
+    private final PurchaseRepository purchaseRepository;
 
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
         List<Settlement> settlements = settlementRepository.findAll();
         List<SkuName> skuNames = skuNameRepository.findAll();
         List<Advertisement> advertisements = advertisementRepository.findAll();
+        List<Purchase> purchases = purchaseRepository.findAll();
+
+        Map<String, List<Purchase>> purchasesByParentSku = purchases.stream()
+                .filter(p -> p.getUnitPrice() != null)
+                .collect(Collectors.groupingBy(Purchase::getParentSku));
+
+        Map<String, Double> averageUnitPriceByParentSku = new HashMap<>();
+        for (Map.Entry<String, List<Purchase>> entry : purchasesByParentSku.entrySet()) {
+            String parentSku = entry.getKey();
+            List<Purchase> purchaseList = entry.getValue();
+            
+            double sum = 0;
+            int count = 0;
+            
+            for (Purchase p : purchaseList) {
+                sum += p.getUnitPrice();
+                count++;
+            }
+            
+            double average = (count == 0) ? 0.0 : sum / count;
+            averageUnitPriceByParentSku.put(parentSku, average);
+        }
 
         Map<String, String> skuToParentSkuMap = skuNames.stream()
                 .filter(s -> s.getParentSku() != null)
@@ -75,6 +101,7 @@ public class MonthlyRevenueSummaryService {
                         .totalAdCost(BigDecimal.ZERO)
                         .grossProfit(BigDecimal.ZERO)
                         .orderCount(0)
+                        .productCost(BigDecimal.ZERO)
                         .build());
 
                 String amountDescription = t.getAmountDescription() != null ? t.getAmountDescription().trim() : "";
@@ -89,6 +116,7 @@ public class MonthlyRevenueSummaryService {
                 } else {
                     summary.setTotalFees(summary.getTotalFees().add(amount));
                 }
+
                 
                 if (!"その他".equals(parentSku) && t.getOrderId() != null && !t.getOrderId().isEmpty()) {
                     parentSkuToOrderIdsMap.computeIfAbsent(parentSku, k -> new ArrayList<>()).add(t.getOrderId());
@@ -105,6 +133,7 @@ public class MonthlyRevenueSummaryService {
                     .totalAdCost(BigDecimal.ZERO)
                     .grossProfit(BigDecimal.ZERO)
                     .orderCount(0)
+                    .productCost(BigDecimal.ZERO)
                     .build());
                 summary.setTotalAdCost(summary.getTotalAdCost().add(cost));
             });
@@ -117,15 +146,26 @@ public class MonthlyRevenueSummaryService {
                 .totalAdCost(BigDecimal.ZERO)
                 .grossProfit(BigDecimal.ZERO)
                 .orderCount(0)
+                .productCost(BigDecimal.ZERO)
                 .build();
 
             parentSkuSummaryMap.forEach((parentSku, summary) -> {
-                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()));
                 summary.setOrderCount((int) parentSkuToOrderIdsMap.getOrDefault(parentSku, new ArrayList<>()).stream().distinct().count());
+
+                Double averageUnitPrice = averageUnitPriceByParentSku.get(parentSku);
+                if (averageUnitPrice != null) {
+                    BigDecimal unitPrice = BigDecimal.valueOf(averageUnitPrice);
+                    BigDecimal orderCount = new BigDecimal(summary.getOrderCount());
+                    BigDecimal cost = unitPrice.multiply(orderCount);
+                    summary.setProductCost(cost);
+                }
+
+                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()).subtract(summary.getProductCost()));
 
                 monthlyTotal.setTotalSales(monthlyTotal.getTotalSales().add(summary.getTotalSales()));
                 monthlyTotal.setTotalFees(monthlyTotal.getTotalFees().add(summary.getTotalFees()));
                 monthlyTotal.setTotalAdCost(monthlyTotal.getTotalAdCost().add(summary.getTotalAdCost()));
+                monthlyTotal.setProductCost(monthlyTotal.getProductCost().add(summary.getProductCost()));
                 monthlyTotal.setGrossProfit(monthlyTotal.getGrossProfit().add(summary.getGrossProfit()));
                 monthlyTotal.setOrderCount(monthlyTotal.getOrderCount() + summary.getOrderCount());
             });

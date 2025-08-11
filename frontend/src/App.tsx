@@ -1,6 +1,5 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import UploadPage from './pages/UploadPage';
-import SummaryPage from './pages/SummaryPage';
 import SkuNamePage from './pages/SkuNamePage'; // SkuNamePageをインポート
 import ParentSkuPage from './pages/ParentSkuPage'; // ParentSkuPageをインポート
 import DailySummaryPage from './pages/DailySummaryPage'; // DailySummaryPageをインポート
@@ -18,9 +17,6 @@ function App() {
             <li className="nav-item">
               <Link to="/" className="nav-link">レポートアップロード</Link>
             </li>
-            <li className="nav-item">
-              <Link to="/summary" className="nav-link">収益サマリー</Link>
-           </li>
            <li className="nav-item">
              <Link to="/daily-summary" className="nav-link">日別サマリー</Link>
            </li>
@@ -42,7 +38,6 @@ function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<UploadPage />} />
-          <Route path="/summary" element={<SummaryPage />} />
           <Route path="/daily-summary" element={<DailySummaryPage />} />
           <Route path="/monthly-summary" element={<MonthlySummaryPage />} />
           <Route path="/sku-names" element={<SkuNamePage />} /> {/* SKU名管理のルーティングを追加 */}

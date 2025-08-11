@@ -11,7 +11,7 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthly
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/summary/monthly")
+@RequestMapping("/api/monthly-summary")
 @RequiredArgsConstructor
 public class MonthlyRevenueSummaryController {
 

@@ -30,5 +30,6 @@ public class ParentSkuMonthlySummaryDto {
         private BigDecimal totalAdCost;
         private BigDecimal grossProfit;
         private int orderCount;
+        private BigDecimal productCost;
     }
 }

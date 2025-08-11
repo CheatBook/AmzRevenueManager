@@ -8,6 +8,7 @@ interface ParentSkuRevenueForMonth {
     totalAdCost: number;
     grossProfit: number;
     orderCount: number;
+    productCost: number;
 }
 
 interface ParentSkuMonthlySummary {
@@ -21,7 +22,7 @@ const MonthlySummaryPage: React.FC = () => {
     const [summary, setSummary] = useState<ParentSkuMonthlySummary[]>([]);
 
     useEffect(() => {
-        fetch('/api/summary/monthly')
+        fetch('/api/monthly-summary')
             .then(response => response.json())
             .then(data => setSummary(data));
     }, []);
@@ -37,6 +38,7 @@ const MonthlySummaryPage: React.FC = () => {
                         <th>総売上</th>
                         <th>手数料・その他費用</th>
                         <th>広告費</th>
+                        <th>商品代金</th>
                         <th>粗利益</th>
                         <th>注文数</th>
                     </tr>
@@ -50,6 +52,7 @@ const MonthlySummaryPage: React.FC = () => {
                                 <td>{item.totalSales.toFixed(2)}</td>
                                 <td>{item.totalFees.toFixed(2)}</td>
                                 <td>{item.totalAdCost.toFixed(2)}</td>
+                                <td>{item.productCost.toFixed(2)}</td>
                                 <td>{item.grossProfit.toFixed(2)}</td>
                                 <td>{item.orderCount}</td>
                             </tr>
@@ -59,6 +62,7 @@ const MonthlySummaryPage: React.FC = () => {
                             <td>{monthlyData.monthlyTotal.totalSales.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.totalFees.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.totalAdCost.toFixed(2)}</td>
+                            <td>{monthlyData.monthlyTotal.productCost.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.grossProfit.toFixed(2)}</td>
                             <td>{monthlyData.monthlyTotal.orderCount}</td>
                         </tr>

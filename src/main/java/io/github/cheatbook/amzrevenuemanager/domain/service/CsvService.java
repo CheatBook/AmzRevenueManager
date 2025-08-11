@@ -8,8 +8,10 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +34,8 @@ import org.springframework.web.multipart.MultipartFile;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementId;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementReport;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +45,7 @@ public class CsvService {
 
     private final SettlementRepository settlementRepository;
     private final SkuNameService skuNameService;
+    private final SettlementReportService settlementReportService;
 
     @Transactional
     public String processReportFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
@@ -108,11 +111,31 @@ public class CsvService {
 
             // 最初の行（集計行）を読み取り
             CSVRecord summaryRecord = csvIterator.next();
-            String settlementId = summaryRecord.get("settlement-id");
-            if (settlementRepository.existsBySettlementId(settlementId)) {
-                throw new DuplicateSettlementIdException("Settlement ID " + settlementId + " は既に存在します。");
+            String settlementIdStr = summaryRecord.get("settlement-id");
+            if (settlementRepository.existsBySettlementId(settlementIdStr)) {
+                throw new DuplicateSettlementIdException("Settlement ID " + settlementIdStr + " は既に存在します。");
             }
+
+            DateTimeFormatter settlementDateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
+            SettlementReport settlementReport = new SettlementReport();
+            settlementReport.setId(Long.parseLong(settlementIdStr));
+
+            String startDateStr = summaryRecord.get("settlement-start-date");
+            if (startDateStr != null && !startDateStr.isEmpty()) {
+                LocalDateTime startDate = LocalDateTime.parse(startDateStr, settlementDateFormatter);
+                settlementReport.setSettlementStartDate(Date.from(startDate.atZone(ZoneId.systemDefault()).toInstant()));
+            }
+            
+            String endDateStr = summaryRecord.get("settlement-end-date");
+            if (endDateStr != null && !endDateStr.isEmpty()) {
+                LocalDateTime endDate = LocalDateTime.parse(endDateStr, settlementDateFormatter);
+                settlementReport.setSettlementEndDate(Date.from(endDate.atZone(ZoneId.systemDefault()).toInstant()));
+            }
+
+            settlementReport.setCurrency(summaryRecord.get("currency"));
             BigDecimal totalAmountFromFile = new BigDecimal(summaryRecord.get("total-amount"));
+            settlementReport.setTotalAmount(totalAmountFromFile.doubleValue());
+            settlementReportService.save(settlementReport);
 
             Map<SettlementId, Settlement> settlementMap = new HashMap<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss z");
@@ -217,54 +240,6 @@ public class CsvService {
         }
     }
 
-    public RevenueSummaryDto calculateRevenueSummary(LocalDate startDate, LocalDate endDate) {
-        List<Settlement> settlements;
-        if (startDate != null && endDate != null) {
-            settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-        } else {
-            settlements = settlementRepository.findAll();
-        }
-
-        BigDecimal totalRevenue = BigDecimal.ZERO;
-        BigDecimal totalCommission = BigDecimal.ZERO;
-        BigDecimal totalShipping = BigDecimal.ZERO;
-        BigDecimal totalTax = BigDecimal.ZERO;
-
-        // "Order" と "Refund" のトランザクションのみを対象に集計
-        List<Settlement> orderSettlements = settlements.stream()
-            .filter(t -> "Order".equals(t.getTransactionType()) || "Refund".equals(t.getTransactionType()))
-            .collect(Collectors.toList());
-
-        for(Settlement t : orderSettlements) {
-            switch (t.getAmountDescription()) {
-                case "Principal":
-                    totalRevenue = totalRevenue.add(t.getAmount());
-                    break;
-                case "Tax":
-                    totalTax = totalTax.add(t.getAmount());
-                    break;
-                case "Shipping":
-                    totalShipping = totalShipping.add(t.getAmount());
-                    break;
-                case "Commission":
-                case "FBAPerUnitFulfillmentFee":
-                case "ShippingChargeback":
-                case "RefundCommission":
-                    totalCommission = totalCommission.add(t.getAmount());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalShipping); // 手数料等はマイナス値なので加算
-        
-        long transactionCount = settlements.stream().map(Settlement::getOrderId).distinct().count();
-
-        return new RevenueSummaryDto(
-            totalRevenue, totalCommission, totalShipping, totalTax, grossProfit, transactionCount
-        );
-    }
 
     public List<SkuRevenueSummaryDto> calculateSkuRevenueSummary() {
         List<Settlement> settlements = settlementRepository.findAll();

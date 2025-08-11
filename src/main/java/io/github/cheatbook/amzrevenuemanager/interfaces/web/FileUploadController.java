@@ -20,7 +20,6 @@ import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryS
 import io.github.cheatbook.amzrevenuemanager.domain.service.AdvertisementService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuDailySummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.RevenueSummaryDto;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
@@ -100,18 +99,6 @@ public class FileUploadController {
         }
     }
 
-    @GetMapping("/summary")
-    public ResponseEntity<RevenueSummaryDto> getRevenueSummary(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        try {
-            RevenueSummaryDto summary = csvService.calculateRevenueSummary(startDate, endDate);
-            return ResponseEntity.ok(summary);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     @GetMapping("/sku-summary")
     public ResponseEntity<List<SkuRevenueSummaryDto>> getSkuRevenueSummary() {
