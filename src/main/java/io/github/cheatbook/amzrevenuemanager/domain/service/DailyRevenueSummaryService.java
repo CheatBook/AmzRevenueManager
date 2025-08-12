@@ -28,7 +28,7 @@ public class DailyRevenueSummaryService {
 
         if (startDate != null && endDate != null) {
             settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-            advertisements = advertisementRepository.findByDateBetween(startDate, endDate);
+            advertisements = advertisementRepository.findByIdDateBetween(startDate, endDate);
         } else {
             settlements = settlementRepository.findAll();
             advertisements = advertisementRepository.findAll();
@@ -38,7 +38,7 @@ public class DailyRevenueSummaryService {
                 .collect(Collectors.groupingBy(t -> t.getPostedDateTime().toLocalDate()));
         
         Map<LocalDate, BigDecimal> adCostByDate = advertisements.stream()
-                .collect(Collectors.groupingBy(Advertisement::getDate,
+                .collect(Collectors.groupingBy(ad -> ad.getId().getDate(),
                         Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add)));
 
         return transactionsByDate.entrySet().stream()

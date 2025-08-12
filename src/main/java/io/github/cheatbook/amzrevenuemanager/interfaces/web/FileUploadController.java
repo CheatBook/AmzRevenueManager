@@ -20,6 +20,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryS
 import io.github.cheatbook.amzrevenuemanager.domain.service.AdvertisementService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuDailySummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
+import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
@@ -63,12 +64,7 @@ public class FileUploadController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
         }
         try {
-            String warningMessage = null;
-            if (file.getOriginalFilename() != null && file.getOriginalFilename().endsWith(".xlsx")) {
-                warningMessage = csvService.processExcelFile(file);
-            } else {
-                warningMessage = csvService.processReportFile(file);
-            }
+            String warningMessage = csvService.processReportFile(file);
             
             String responseMessage = "ファイルが正常にアップロードされ、データが処理されました。";
             if (warningMessage != null) {
@@ -92,6 +88,8 @@ public class FileUploadController {
         try {
             advertisementService.processAdvertisementReport(file);
             return ResponseEntity.ok("広告レポートが正常にアップロードされ、処理されました。");
+        } catch (SkuNameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

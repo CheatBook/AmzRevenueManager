@@ -32,7 +32,7 @@ public class ParentSkuDailySummaryService {
         List<Advertisement> advertisements;
         if (startDate != null && endDate != null) {
             settlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-            advertisements = advertisementRepository.findByDateBetween(startDate, endDate);
+            advertisements = advertisementRepository.findByIdDateBetween(startDate, endDate);
         } else {
             settlements = settlementRepository.findAll();
             advertisements = advertisementRepository.findAll();
@@ -54,9 +54,9 @@ public class ParentSkuDailySummaryService {
             }
         });
 
-        Map<LocalDate, Map<String, BigDecimal>> adCostByDateAndSku = advertisements.stream()
-            .collect(Collectors.groupingBy(Advertisement::getDate,
-                Collectors.groupingBy(Advertisement::getSku,
+        Map<LocalDate, Map<String, BigDecimal>> adCostByDateAndParentSku = advertisements.stream()
+            .collect(Collectors.groupingBy(ad -> ad.getId().getDate(),
+                Collectors.groupingBy(ad -> ad.getId().getParentSku(),
                     Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add))));
 
         Map<LocalDate, List<Settlement>> dailyTransactions = settlements.stream()
@@ -102,12 +102,8 @@ public class ParentSkuDailySummaryService {
                             }
                         }
                         
-                        if (adCostByDateAndSku.containsKey(date)) {
-                            for (Settlement t : parentSkuTransactions) {
-                                if (adCostByDateAndSku.get(date).containsKey(t.getSku())) {
-                                    totalAdCost = totalAdCost.add(adCostByDateAndSku.get(date).get(t.getSku()));
-                                }
-                            }
+                        if (adCostByDateAndParentSku.containsKey(date)) {
+                            totalAdCost = adCostByDateAndParentSku.get(date).getOrDefault(parentSku, BigDecimal.ZERO);
                         }
 
                         BigDecimal grossProfit = totalRevenue.add(totalCommission).add(totalAdCost);

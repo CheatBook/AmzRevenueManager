@@ -22,11 +22,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,45 +48,6 @@ public class CsvService {
         // ファイルの文字コードに合わせて "UTF-8" などに変更してください
         try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(file.getInputStream(), "Shift_JIS"))) {
             return processCsvData(reader);
-        }
-    }
-
-    @Transactional
-    public String processExcelFile(MultipartFile file) throws IOException, DuplicateSettlementIdException {
-        try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
-
-            Sheet sheet = workbook.getSheetAt(0); // 最初のシートを取得
-            StringBuilder csvData = new StringBuilder();
-            Iterator<Row> rowIterator = sheet.iterator();
-
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                Iterator<Cell> cellIterator = row.cellIterator();
-                List<String> cellValues = new ArrayList<>();
-                while (cellIterator.hasNext()) {
-                    Cell cell = cellIterator.next();
-                    switch (cell.getCellType()) {
-                        case STRING:
-                            cellValues.add(cell.getStringCellValue());
-                            break;
-                        case NUMERIC:
-                            // 指数表記を防ぐためにBigDecimalを使用
-                            cellValues.add(new BigDecimal(cell.getNumericCellValue()).toPlainString());
-                            break;
-                        case BOOLEAN:
-                            cellValues.add(String.valueOf(cell.getBooleanCellValue()));
-                            break;
-                        default:
-                            cellValues.add("");
-                    }
-                }
-                csvData.append(String.join("\t", cellValues)).append("\n"); // タブ区切りで結合
-            }
-
-            try (Reader reader = new StringReader(csvData.toString())) {
-                return processCsvData(reader);
-            }
         }
     }
 

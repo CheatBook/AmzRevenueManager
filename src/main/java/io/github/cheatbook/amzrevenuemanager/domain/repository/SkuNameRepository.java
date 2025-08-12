@@ -10,4 +10,5 @@ import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 public interface SkuNameRepository extends JpaRepository<SkuName, String> {
     List<SkuName> findByParentSkuIsNull();
     List<SkuName> findByParentSku(String parentSku);
+    java.util.Optional<SkuName> findByJapaneseName(String japaneseName);
 }

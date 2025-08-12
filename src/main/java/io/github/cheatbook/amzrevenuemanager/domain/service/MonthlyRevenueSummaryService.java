@@ -78,9 +78,9 @@ public class MonthlyRevenueSummaryService {
             transactionsByMonth.computeIfAbsent(yearMonth, k -> new ArrayList<>()).add(t);
         }
 
-        Map<YearMonth, Map<String, BigDecimal>> adCostByMonthAndSku = advertisements.stream()
-            .collect(Collectors.groupingBy(ad -> YearMonth.from(ad.getDate()),
-                Collectors.groupingBy(Advertisement::getSku,
+        Map<YearMonth, Map<String, BigDecimal>> adCostByMonthAndParentSku = advertisements.stream()
+            .collect(Collectors.groupingBy(ad -> YearMonth.from(ad.getId().getDate()),
+                Collectors.groupingBy(ad -> ad.getId().getParentSku(),
                     Collectors.reducing(BigDecimal.ZERO, Advertisement::getTotalCost, BigDecimal::add))));
 
         List<ParentSkuMonthlySummaryDto> summaryList = new ArrayList<>();
@@ -123,8 +123,7 @@ public class MonthlyRevenueSummaryService {
                 }
             }
 
-            adCostByMonthAndSku.getOrDefault(yearMonth, new HashMap<>()).forEach((sku, cost) -> {
-                String parentSku = skuToParentSkuMap.getOrDefault(sku, "N/A");
+            adCostByMonthAndParentSku.getOrDefault(yearMonth, new HashMap<>()).forEach((parentSku, cost) -> {
                 ParentSkuRevenueForMonthDto summary = parentSkuSummaryMap.computeIfAbsent(parentSku, k -> ParentSkuRevenueForMonthDto.builder()
                     .parentSku(k)
                     .parentSkuJapaneseName("その他".equals(k) ? "その他" : parentSkuToJapaneseNameMap.getOrDefault(k, k))

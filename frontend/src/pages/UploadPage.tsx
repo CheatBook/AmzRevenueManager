@@ -70,8 +70,8 @@ export default function UploadPage() {
     <div>
       <div className="card">
         <h2>決済レポートアップロード</h2>
-        <p>Amazonペイメントレポート（Excel, TSV, CSV形式）をアップロードしてください。</p>
-        <input type="file" accept=".csv,.tsv,.txt,.xlsx" onChange={(e) => handleFileChange(e, 'payment')} />
+        <p>Amazonペイメントレポート（TSV, CSV形式）をアップロードしてください。</p>
+        <input type="file" accept=".csv,.tsv,.txt" onChange={(e) => handleFileChange(e, 'payment')} />
         <button onClick={() => handleUpload('payment')} disabled={isLoading['payment']}>
           {isLoading['payment'] ? '処理中...' : 'アップロードして集計'}
         </button>
@@ -80,8 +80,8 @@ export default function UploadPage() {
       </div>
       <div className="card">
         <h2>広告レポートアップロード</h2>
-        <p>スポンサープロダクト広告レポートをアップロードしてください。</p>
-        <input type="file" accept=".xlsx" onChange={(e) => handleFileChange(e, 'advertisement')} />
+        <p>スポンサープロダクト広告レポート（CSV形式）をアップロードしてください。</p>
+        <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, 'advertisement')} />
         <button onClick={() => handleUpload('advertisement')} disabled={isLoading['advertisement']}>
           {isLoading['advertisement'] ? '処理中...' : 'アップロード'}
         </button>
