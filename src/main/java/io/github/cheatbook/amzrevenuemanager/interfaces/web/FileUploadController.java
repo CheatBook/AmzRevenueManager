@@ -18,7 +18,6 @@ import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuRevenueSumm
 import io.github.cheatbook.amzrevenuemanager.domain.service.HierarchicalRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DailyRevenueSummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.AdvertisementService;
-import io.github.cheatbook.amzrevenuemanager.domain.service.ParentSkuDailySummaryService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import java.time.LocalDate;
@@ -26,7 +25,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.HierarchicalSkuRevenueSummaryDto;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.DailyRevenueSummaryDto;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.DailySummaryWithParentSkuDto;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -39,7 +37,6 @@ public class FileUploadController {
     private final ParentSkuRevenueSummaryService parentSkuRevenueSummaryService;
     private final HierarchicalRevenueSummaryService hierarchicalRevenueSummaryService;
     private final DailyRevenueSummaryService dailyRevenueSummaryService;
-    private final ParentSkuDailySummaryService parentSkuDailySummaryService;
     private final AdvertisementService advertisementService;
     private final SalesDateService salesDateService;
 
@@ -140,18 +137,6 @@ public class FileUploadController {
         try {
             List<HierarchicalSkuRevenueSummaryDto> hierarchicalSummary = hierarchicalRevenueSummaryService.getHierarchicalSkuRevenueSummary(startDate, endDate);
             return ResponseEntity.ok(hierarchicalSummary);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    @GetMapping("/parent-sku-daily-summary")
-    public ResponseEntity<List<DailySummaryWithParentSkuDto>> getParentSkuDailySummary(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        try {
-            List<DailySummaryWithParentSkuDto> result = parentSkuDailySummaryService.getDailyParentSkuSummary(startDate, endDate);
-            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
