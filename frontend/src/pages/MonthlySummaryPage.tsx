@@ -49,22 +49,22 @@ const MonthlySummaryPage: React.FC = () => {
                             <tr key={`${index}-${subIndex}`}>
                                 {subIndex === 0 && <td rowSpan={monthlyData.parentSkuRevenues.length + 1}>{monthlyData.year}/{monthlyData.month}</td>}
                                 <td>{item.parentSkuJapaneseName || item.parentSku}</td>
-                                <td>{item.totalSales.toFixed(2)}</td>
-                                <td>{item.totalFees.toFixed(2)}</td>
-                                <td>{item.totalAdCost.toFixed(2)}</td>
-                                <td>{item.productCost.toFixed(2)}</td>
-                                <td>{item.grossProfit.toFixed(2)}</td>
-                                <td>{item.orderCount}</td>
+                                <td>{item.totalSales.toLocaleString()}</td>
+                                <td>{item.totalFees.toLocaleString()}</td>
+                                <td>{item.totalAdCost.toLocaleString()}</td>
+                                <td>{item.productCost.toLocaleString()}</td>
+                                <td>{item.grossProfit.toLocaleString()}</td>
+                                <td>{item.orderCount.toLocaleString()}</td>
                             </tr>
                         )),
                         <tr key={`${index}-total`} style={{ fontWeight: 'bold' }}>
                             <td>合計</td>
-                            <td>{monthlyData.monthlyTotal.totalSales.toFixed(2)}</td>
-                            <td>{monthlyData.monthlyTotal.totalFees.toFixed(2)}</td>
-                            <td>{monthlyData.monthlyTotal.totalAdCost.toFixed(2)}</td>
-                            <td>{monthlyData.monthlyTotal.productCost.toFixed(2)}</td>
-                            <td>{monthlyData.monthlyTotal.grossProfit.toFixed(2)}</td>
-                            <td>{monthlyData.monthlyTotal.orderCount}</td>
+                            <td>{monthlyData.monthlyTotal.totalSales.toLocaleString()}</td>
+                            <td>{monthlyData.monthlyTotal.totalFees.toLocaleString()}</td>
+                            <td>{monthlyData.monthlyTotal.totalAdCost.toLocaleString()}</td>
+                            <td>{monthlyData.monthlyTotal.productCost.toLocaleString()}</td>
+                            <td>{monthlyData.monthlyTotal.grossProfit.toLocaleString()}</td>
+                            <td>{monthlyData.monthlyTotal.orderCount.toLocaleString()}</td>
                         </tr>
                     ])}
                 </tbody>

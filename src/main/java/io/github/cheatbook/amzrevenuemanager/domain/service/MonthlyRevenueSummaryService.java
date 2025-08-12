@@ -1,6 +1,7 @@
 package io.github.cheatbook.amzrevenuemanager.domain.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -156,10 +157,18 @@ public class MonthlyRevenueSummaryService {
                     BigDecimal unitPrice = BigDecimal.valueOf(averageUnitPrice);
                     BigDecimal orderCount = new BigDecimal(summary.getOrderCount());
                     BigDecimal cost = unitPrice.multiply(orderCount);
-                    summary.setProductCost(cost);
+                    summary.setProductCost(cost.negate());
                 }
 
-                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()).subtract(summary.getProductCost()));
+                summary.setTotalAdCost(summary.getTotalAdCost().negate());
+                summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()).add(summary.getProductCost()));
+
+                // Rounding all fields to whole numbers
+                summary.setTotalSales(summary.getTotalSales().setScale(0, RoundingMode.HALF_UP));
+                summary.setTotalFees(summary.getTotalFees().setScale(0, RoundingMode.HALF_UP));
+                summary.setTotalAdCost(summary.getTotalAdCost().setScale(0, RoundingMode.HALF_UP));
+                summary.setProductCost(summary.getProductCost().setScale(0, RoundingMode.HALF_UP));
+                summary.setGrossProfit(summary.getGrossProfit().setScale(0, RoundingMode.HALF_UP));
 
                 monthlyTotal.setTotalSales(monthlyTotal.getTotalSales().add(summary.getTotalSales()));
                 monthlyTotal.setTotalFees(monthlyTotal.getTotalFees().add(summary.getTotalFees()));
@@ -168,6 +177,13 @@ public class MonthlyRevenueSummaryService {
                 monthlyTotal.setGrossProfit(monthlyTotal.getGrossProfit().add(summary.getGrossProfit()));
                 monthlyTotal.setOrderCount(monthlyTotal.getOrderCount() + summary.getOrderCount());
             });
+
+            // Rounding totals
+            monthlyTotal.setTotalSales(monthlyTotal.getTotalSales().setScale(0, RoundingMode.HALF_UP));
+            monthlyTotal.setTotalFees(monthlyTotal.getTotalFees().setScale(0, RoundingMode.HALF_UP));
+            monthlyTotal.setTotalAdCost(monthlyTotal.getTotalAdCost().setScale(0, RoundingMode.HALF_UP));
+            monthlyTotal.setProductCost(monthlyTotal.getProductCost().setScale(0, RoundingMode.HALF_UP));
+            monthlyTotal.setGrossProfit(monthlyTotal.getGrossProfit().setScale(0, RoundingMode.HALF_UP));
 
             summaryList.add(ParentSkuMonthlySummaryDto.builder()
                     .year(yearMonth.getYear())
