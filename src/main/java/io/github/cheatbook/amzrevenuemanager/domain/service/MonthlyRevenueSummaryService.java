@@ -21,7 +21,6 @@ import io.github.cheatbook.amzrevenuemanager.domain.repository.PurchaseRepositor
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
-import java.util.Optional;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto;
 import lombok.RequiredArgsConstructor;
 
@@ -108,10 +107,8 @@ public class MonthlyRevenueSummaryService {
                 String amountDescription = t.getAmountDescription() != null ? t.getAmountDescription().trim() : "";
                 BigDecimal amount = t.getAmount();
 
-                if ("Principal".equals(amountDescription) || "Tax".equals(amountDescription) || "ShippingTax".equals(amountDescription)) {
+                if ("Principal".equals(amountDescription) || "Tax".equals(amountDescription) || "ShippingTax".equals(amountDescription) || "Shipping".equals(amountDescription)) {
                     summary.setTotalSales(summary.getTotalSales().add(amount));
-                } else if ("Shipping".equals(amountDescription)) {
-                    summary.setTotalFees(summary.getTotalFees().add(amount));
                 } else if ("TaxDiscount".equals(amountDescription)) {
                     summary.setTotalFees(summary.getTotalFees().add(amount));
                 } else {

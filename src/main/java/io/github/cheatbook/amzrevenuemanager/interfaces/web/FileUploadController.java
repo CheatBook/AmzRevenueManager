@@ -56,25 +56,35 @@ public class FileUploadController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
+    public ResponseEntity<String> handleFileUpload(@RequestParam("files") List<MultipartFile> files) {
+        if (files.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
         }
-        try {
-            String warningMessage = csvService.processReportFile(file);
-            
-            String responseMessage = "ファイルが正常にアップロードされ、データが処理されました。";
-            if (warningMessage != null) {
-                responseMessage += "\n" + warningMessage;
+
+        StringBuilder responseMessageBuilder = new StringBuilder();
+        StringBuilder warningMessageBuilder = new StringBuilder();
+
+        for (MultipartFile file : files) {
+            try {
+                String warningMessage = csvService.processReportFile(file);
+                if (warningMessage != null) {
+                    warningMessageBuilder.append(file.getOriginalFilename()).append(": ").append(warningMessage).append("\n");
+                }
+                responseMessageBuilder.append(file.getOriginalFilename()).append(" が正常に処理されました。\n");
+            } catch (DuplicateSettlementIdException e) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
             }
-            return ResponseEntity.ok(responseMessage);
-        } catch (DuplicateSettlementIdException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("ファイルの処理中にエラーが発生しました: " + e.getMessage());
         }
+
+        if (warningMessageBuilder.length() > 0) {
+            responseMessageBuilder.append("\n警告:\n").append(warningMessageBuilder);
+        }
+
+        return ResponseEntity.ok(responseMessageBuilder.toString());
     }
 
     @PostMapping("/upload-advertisement")

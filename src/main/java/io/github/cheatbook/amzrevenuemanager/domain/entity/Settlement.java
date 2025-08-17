@@ -18,15 +18,16 @@ import lombok.Data;
 public class Settlement {
 
     @Id
-    @Column(length = 20)
+    @Column(length = 30)
     private String settlementId;
-    @Column(length = 20)
+    @Column(length = 50)
     private String transactionType;
     @Id
-    @Column(length = 30)
+    @Column(length = 50)
     private String orderId;
     @Id
     private Long orderItemCode;
+    @Column(length = 50)
     private String amountType;
     @Id
     @Column(length = 50)
@@ -34,6 +35,7 @@ public class Settlement {
     private BigDecimal amount;
     @Id
     private LocalDateTime postedDateTime;
+    @Column(length = 50)
     private String sku;
     private Integer quantityPurchased;
 
