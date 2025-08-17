@@ -66,4 +66,13 @@ public class SkuNameApplicationService {
     public List<SkuName> findParentSkus() {
         return skuNameService.findParentSkus();
     }
+
+    /**
+     * 決済情報から重複しないSKUのリストを取得します。
+     *
+     * @return SKUのリスト
+     */
+    public List<String> findDistinctSkusFromSettlements() {
+        return skuNameService.findDistinctSkusFromSettlements();
+    }
 }

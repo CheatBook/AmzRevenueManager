@@ -19,35 +19,17 @@ public class ProductCostCalculator {
     /**
      * 商品原価を計算し、親SKUごとのサマリーマップを更新します。
      *
-     * @param purchases           仕入れリスト
-     * @param parentSkuSummaryMap 親SKUごとのサマリーマップ
+     * @param parentSkuSummaryMap         親SKUごとのサマリーマップ
+     * @param averageUnitPriceByParentSku 親SKUごとの平均単価マップ
      */
-    public void calculate(List<Purchase> purchases, Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap) {
-        if (purchases == null) {
-            return;
-        }
-
-        Map<String, List<Purchase>> purchasesByParentSku = purchases.stream()
-                .filter(p -> p.getUnitPrice() != null)
-                .collect(Collectors.groupingBy(Purchase::getParentSku));
-
-        Map<String, Double> averageUnitPriceByParentSku = new HashMap<>();
-        for (Map.Entry<String, List<Purchase>> entry : purchasesByParentSku.entrySet()) {
-            String parentSku = entry.getKey();
-            List<Purchase> purchaseList = entry.getValue();
-
-            double sum = purchaseList.stream().mapToDouble(Purchase::getUnitPrice).sum();
-            double average = purchaseList.isEmpty() ? 0.0 : sum / purchaseList.size();
-            averageUnitPriceByParentSku.put(parentSku, average);
-        }
-
+    public void calculate(Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap, Map<String, Double> averageUnitPriceByParentSku) {
         parentSkuSummaryMap.forEach((parentSku, summary) -> {
             Double averageUnitPrice = averageUnitPriceByParentSku.get(parentSku);
             if (averageUnitPrice != null) {
                 BigDecimal unitPrice = BigDecimal.valueOf(averageUnitPrice);
                 BigDecimal orderCount = new BigDecimal(summary.getOrderCount());
                 BigDecimal cost = unitPrice.multiply(orderCount);
-                summary.setProductCost(cost.negate());
+                summary.setProductCost(cost);
             }
         });
     }

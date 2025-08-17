@@ -25,6 +25,7 @@ public class SummaryAggregator {
 
         parentSkuSummaryMap.forEach((parentSku, summary) -> {
             summary.setTotalAdCost(summary.getTotalAdCost().negate());
+            summary.setProductCost(summary.getProductCost().negate());
             summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()).add(summary.getProductCost()));
 
             roundSummaryFields(summary);

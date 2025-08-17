@@ -53,15 +53,18 @@ public class MonthlyRevenueSummaryService {
         List<Advertisement> allAdvertisements = advertisementRepository.findAll();
         List<Purchase> allPurchases = purchaseRepository.findAll();
 
+        // 親SKUごとの平均単価を計算
+        Map<String, Double> averageUnitPriceByParentSku = allPurchases.stream()
+                .filter(p -> p.getUnitPrice() != null && p.getParentSku() != null)
+                .collect(Collectors.groupingBy(Purchase::getParentSku,
+                        Collectors.averagingDouble(Purchase::getUnitPrice)));
+
         // 各データを月ごとにグループ化
         Map<YearMonth, List<Settlement>> settlementsByMonth = allSettlements.stream()
                 .collect(Collectors.groupingBy(s -> YearMonth.from(s.getPostedDateTime())));
 
         Map<YearMonth, List<Advertisement>> advertisementsByMonth = allAdvertisements.stream()
                 .collect(Collectors.groupingBy(a -> YearMonth.from(a.getId().getDate())));
-
-        Map<YearMonth, List<Purchase>> purchasesByMonth = allPurchases.stream()
-                .collect(Collectors.groupingBy(p -> YearMonth.from(p.getPurchaseDate())));
 
         Set<YearMonth> yearMonths = settlementsByMonth.keySet();
 
@@ -76,12 +79,10 @@ public class MonthlyRevenueSummaryService {
         for (YearMonth yearMonth : yearMonths) {
             List<Settlement> monthlySettlements = settlementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
             List<Advertisement> monthlyAdvertisements = advertisementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
-            List<Purchase> monthlyPurchases = purchasesByMonth.getOrDefault(yearMonth, Collections.emptyList());
-
             // 各計算クラスを呼び出してサマリーを計算
             Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap = salesCalculator.calculate(monthlySettlements, skuNames, parentSkuToJapaneseNameMap);
             advertisementCostCalculator.calculate(monthlyAdvertisements, parentSkuSummaryMap, parentSkuToJapaneseNameMap);
-            productCostCalculator.calculate(monthlyPurchases, parentSkuSummaryMap);
+            productCostCalculator.calculate(parentSkuSummaryMap, averageUnitPriceByParentSku);
 
             // 月次合計を集計
             ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto monthlyTotal = summaryAggregator.aggregate(parentSkuSummaryMap);

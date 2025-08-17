@@ -53,11 +53,7 @@ public class SkuNameController {
     @GetMapping("/distinct-skus")
     public ResponseEntity<List<String>> getDistinctSkusFromSettlements() {
         try {
-            // このエンドポイントはアプリケーション内でSKU名が処理されるようになったため、不要になりました。
-            // 削除するか、新しい要件に適応させることを検討してください。
-            // 現時点ではコメントアウトしておきます。
-            // List<String> distinctSkus = skuNameService.findDistinctSkusFromSettlements();
-            List<String> distinctSkus = new java.util.ArrayList<>();
+            List<String> distinctSkus = skuNameApplicationService.findDistinctSkusFromSettlements();
             return ResponseEntity.ok(distinctSkus);
         } catch (Exception e) {
             e.printStackTrace();
