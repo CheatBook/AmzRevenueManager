@@ -22,7 +22,7 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummar
 import lombok.RequiredArgsConstructor;
 
 /**
- * 階層的な収益サマリーを提供するサービスクラスです。
+ * 階層的な収益サマリーを提供するサービスクラス。
  */
 @Service
 @RequiredArgsConstructor
@@ -44,26 +44,30 @@ public class HierarchicalRevenueSummaryService {
     private final RevenueSummaryService revenueSummaryService;
 
     /**
-     * 階層的なSKU収益サマリーを取得します。
+     * 階層的なSKU収益サマリーを取得する。
      *
      * @param startDate 開始日
      * @param endDate   終了日
      * @return 階層的なSKU収益サマリーDTOのリスト
      */
     public List<HierarchicalSkuRevenueSummaryDto> getHierarchicalSkuRevenueSummary(LocalDate startDate, LocalDate endDate) {
+        // 期間指定があれば決済情報を絞り込み、なければ全件取得
         List<Settlement> allSettlements;
         if (startDate != null && endDate != null) {
             allSettlements = settlementRepository.findByPostedDateTimeBetween(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
         } else {
             allSettlements = settlementRepository.findAll();
         }
+        
+        // SKU名とSKU->日本語名マップを取得
         List<SkuName> skuNames = cacheableDataService.findAllSkuNames();
         Map<String, String> skuToJapaneseNameMap = skuNames.stream()
                 .collect(Collectors.toMap(SkuName::getSku, SkuName::getJapaneseName, (name1, name2) -> name1));
 
+        // SKUごとの収益サマリーを計算
         Map<String, SkuRevenueSummaryDto> skuSummaryMap = revenueSummaryService.calculateSkuRevenueSummaries(allSettlements, skuNames);
 
-        // 階層を構築し、サマリーを処理する
+        // 親SKUと子SKUの階層関係を構築
         List<HierarchicalSkuRevenueSummaryDto> hierarchicalSummaries = new ArrayList<>();
         Set<String> processedSkus = new HashSet<>();
 
@@ -71,6 +75,7 @@ public class HierarchicalRevenueSummaryService {
                 .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty())
                 .collect(Collectors.groupingBy(SkuName::getParentSku, Collectors.mapping(SkuName::getSku, Collectors.toList())));
 
+        // 親SKUごとに子SKUのサマリーを集計
         for (Map.Entry<String, List<String>> entry : parentToChildrenMap.entrySet()) {
             String parentSku = entry.getKey();
             List<String> childSkus = entry.getValue();
@@ -89,6 +94,7 @@ public class HierarchicalRevenueSummaryService {
                 childrenSummaries.add(childSummary);
                 processedSkus.add(childSku);
 
+                // 子SKUの値を親SKUに合算
                 parentSummary.setTotalRevenue(parentSummary.getTotalRevenue().add(childSummary.getTotalRevenue()));
                 parentSummary.setTotalCommission(parentSummary.getTotalCommission().add(childSummary.getTotalCommission()));
                 parentSummary.setTotalShipping(parentSummary.getTotalShipping().add(childSummary.getTotalShipping()));
@@ -103,12 +109,14 @@ public class HierarchicalRevenueSummaryService {
             processedSkus.add(parentSku);
         }
 
+        // 親を持たないSKUをリストに追加
         for (Map.Entry<String, SkuRevenueSummaryDto> entry : skuSummaryMap.entrySet()) {
             if (!processedSkus.contains(entry.getKey())) {
                 hierarchicalSummaries.add(new HierarchicalSkuRevenueSummaryDto(entry.getValue(), new ArrayList<>()));
             }
         }
 
+        // 親SKUでソートして返却
         return hierarchicalSummaries.stream()
                 .sorted(Comparator.comparing(dto -> dto.getParentSummary().getSku()))
                 .collect(Collectors.toList());

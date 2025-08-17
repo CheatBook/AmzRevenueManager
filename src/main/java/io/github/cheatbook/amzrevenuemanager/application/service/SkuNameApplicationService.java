@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * SKU名に関するアプリケーションサービスクラスです。
+ * SKU名に関するアプリケーションサービスクラス。
  */
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class SkuNameApplicationService {
     private final SkuNameService skuNameService;
 
     /**
-     * すべてのSKU名を取得します。
+     * すべてのSKU名を取得する。
      *
      * @return SKU名のリスト
      */
@@ -30,7 +30,7 @@ public class SkuNameApplicationService {
     }
 
     /**
-     * SKUによってSKU名を取得します。
+     * SKUによってSKU名を取得する。
      *
      * @param sku SKU
      * @return SKU名 (Optional)
@@ -40,7 +40,7 @@ public class SkuNameApplicationService {
     }
 
     /**
-     * SKU名を保存します。
+     * SKU名を保存する。
      *
      * @param skuName SKU名
      * @return 保存されたSKU名
@@ -50,7 +50,7 @@ public class SkuNameApplicationService {
     }
 
     /**
-     * SKU名を削除します。
+     * SKU名を削除する。
      *
      * @param sku SKU
      */
@@ -59,7 +59,7 @@ public class SkuNameApplicationService {
     }
 
     /**
-     * 親SKUのリストを取得します。
+     * 親SKUのリストを取得する。
      *
      * @return 親SKUのリスト
      */

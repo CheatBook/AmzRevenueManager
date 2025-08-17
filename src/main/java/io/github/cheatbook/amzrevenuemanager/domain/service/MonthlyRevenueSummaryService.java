@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 月次収益サマリーを提供するサービスクラスです。
+ * 月次収益サマリーを提供するサービスクラス。
  */
 @Service
 @RequiredArgsConstructor
@@ -42,16 +42,18 @@ public class MonthlyRevenueSummaryService {
     private final SummaryAggregator summaryAggregator;
 
     /**
-     * 月次収益サマリーを取得します。
+     * 月次収益サマリーを取得する。
      *
      * @return 親SKUごとの月次収益サマリーDTOのリスト
      */
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
+        // 必要なデータをすべて取得
         List<Settlement> allSettlements = settlementRepository.findAll();
         List<SkuName> skuNames = cacheableDataService.findAllSkuNames();
         List<Advertisement> allAdvertisements = advertisementRepository.findAll();
         List<Purchase> allPurchases = purchaseRepository.findAll();
 
+        // 各データを月ごとにグループ化
         Map<YearMonth, List<Settlement>> settlementsByMonth = allSettlements.stream()
                 .collect(Collectors.groupingBy(s -> YearMonth.from(s.getPostedDateTime())));
 
@@ -65,19 +67,23 @@ public class MonthlyRevenueSummaryService {
 
         List<ParentSkuMonthlySummaryDto> summaryList = new ArrayList<>();
 
+        // 親SKUと日本語名のマップを作成
         Map<String, String> parentSkuToJapaneseNameMap = skuNames.stream()
                 .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty() && s.getJapaneseName() != null)
                 .collect(Collectors.toMap(SkuName::getParentSku, SkuName::getJapaneseName, (existing, replacement) -> existing));
 
+        // 月ごとにサマリーを計算
         for (YearMonth yearMonth : yearMonths) {
             List<Settlement> monthlySettlements = settlementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
             List<Advertisement> monthlyAdvertisements = advertisementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
             List<Purchase> monthlyPurchases = purchasesByMonth.getOrDefault(yearMonth, Collections.emptyList());
 
+            // 各計算クラスを呼び出してサマリーを計算
             Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap = salesCalculator.calculate(monthlySettlements, skuNames, parentSkuToJapaneseNameMap);
             advertisementCostCalculator.calculate(monthlyAdvertisements, parentSkuSummaryMap, parentSkuToJapaneseNameMap);
             productCostCalculator.calculate(monthlyPurchases, parentSkuSummaryMap);
 
+            // 月次合計を集計
             ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto monthlyTotal = summaryAggregator.aggregate(parentSkuSummaryMap);
 
             summaryList.add(ParentSkuMonthlySummaryDto.builder()
@@ -88,6 +94,7 @@ public class MonthlyRevenueSummaryService {
                     .build());
         }
 
+        // 年月の降順でソート
         summaryList.sort(Comparator.comparing(ParentSkuMonthlySummaryDto::getYear).reversed()
                 .thenComparing(Comparator.comparing(ParentSkuMonthlySummaryDto::getMonth).reversed()));
 

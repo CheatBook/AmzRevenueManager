@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 仕入れに関するアプリケーションサービスクラスです。
+ * 仕入れに関するアプリケーションサービスクラス。
  */
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class PurchaseApplicationService {
     private final PurchaseService purchaseService;
 
     /**
-     * 仕入れ情報を保存します。
+     * 仕入れ情報を保存する。
      *
      * @param purchaseDto 仕入れ情報DTO
      * @return 保存された仕入れ情報
@@ -32,7 +32,7 @@ public class PurchaseApplicationService {
     }
 
     /**
-     * すべての仕入れ情報を取得します。
+     * すべての仕入れ情報を取得する。
      *
      * @return 仕入れ情報のリスト
      */
@@ -41,7 +41,7 @@ public class PurchaseApplicationService {
     }
 
     /**
-     * 仕入れ情報を更新します。
+     * 仕入れ情報を更新する。
      *
      * @param parentSku    親SKU
      * @param purchaseDate 仕入れ日

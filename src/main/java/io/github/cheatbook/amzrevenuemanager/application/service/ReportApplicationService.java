@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 /**
- * レポートに関するアプリケーションサービスクラスです。
+ * レポートに関するアプリケーションサービスクラス。
  */
 @Service
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class ReportApplicationService {
     private final SettlementImportService settlementImportService;
 
     /**
-     * 広告レポートをインポートします。
+     * 広告レポートをインポートする。
      *
      * @param file アップロードされた広告レポートファイル
      * @throws IOException              ファイルの読み込みに失敗した場合
@@ -39,7 +39,7 @@ public class ReportApplicationService {
     }
 
     /**
-     * 決済レポートをインポートします。
+     * 決済レポートをインポートする。
      *
      * @param file アップロードされた決済レポートファイル
      * @return インポート結果のメッセージ
