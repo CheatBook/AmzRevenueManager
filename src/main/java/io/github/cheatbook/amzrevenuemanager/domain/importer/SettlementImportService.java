@@ -25,14 +25,36 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * 決済レポートのインポートサービスクラスです。
+ */
 @Service
 @RequiredArgsConstructor
 public class SettlementImportService {
 
+    /**
+     * 決済リポジトリ
+     */
     private final SettlementRepository settlementRepository;
+
+    /**
+     * 決済レポートサービス
+     */
     private final SettlementReportService settlementReportService;
+
+    /**
+     * 決済レポートプロセッサー
+     */
     private final SettlementReportProcessor processor;
 
+    /**
+     * 決済レポートをインポートします。
+     *
+     * @param file アップロードされた決済レポートファイル
+     * @return 検証メッセージ（合計金額が一致しない場合）、一致する場合はnull
+     * @throws IOException                    ファイルの読み込みに失敗した場合
+     * @throws DuplicateSettlementIdException 重複した決済IDが存在する場合
+     */
     @Transactional(rollbackFor = DuplicateSettlementIdException.class)
     public String importReport(MultipartFile file) throws IOException, DuplicateSettlementIdException {
         try (SettlementReportReader reader = new SettlementReportReader(file)) {
@@ -60,6 +82,11 @@ public class SettlementImportService {
         }
     }
 
+    /**
+     * 決済レポートのサマリー情報を保存します。
+     *
+     * @param summaryRecord サマリーレコード
+     */
     private void saveSettlementReport(CSVRecord summaryRecord) {
         SettlementReport settlementReport = new SettlementReport();
         settlementReport.setId(Long.parseLong(summaryRecord.get(ReportConstants.HEADER_SETTLEMENT_ID)));
@@ -82,6 +109,13 @@ public class SettlementImportService {
         settlementReportService.save(settlementReport);
     }
 
+    /**
+     * ファイルの合計金額と計算された合計金額を検証します。
+     *
+     * @param summaryRecord サマリーレコード
+     * @param settlementMap 決済情報マップ
+     * @return 検証メッセージ（合計金額が一致しない場合）、一致する場合はnull
+     */
     private String validateTotalAmount(CSVRecord summaryRecord, Map<SettlementId, Settlement> settlementMap) {
         BigDecimal totalAmountFromFile = new BigDecimal(summaryRecord.get(ReportConstants.HEADER_TOTAL_AMOUNT));
         BigDecimal calculatedTotalAmount = settlementMap.values().stream()

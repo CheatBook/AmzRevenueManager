@@ -10,9 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 商品原価を計算するクラスです。
+ */
 @Component
 public class ProductCostCalculator {
 
+    /**
+     * 商品原価を計算し、親SKUごとのサマリーマップを更新します。
+     *
+     * @param purchases           仕入れリスト
+     * @param parentSkuSummaryMap 親SKUごとのサマリーマップ
+     */
     public void calculate(List<Purchase> purchases, Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap) {
         if (purchases == null) {
             return;

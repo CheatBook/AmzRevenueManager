@@ -15,12 +15,24 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * 決済レポートのレコードを処理するクラスです。
+ */
 @Component
 @RequiredArgsConstructor
 public class SettlementReportProcessor {
 
+    /**
+     * SKU名サービス
+     */
     private final SkuNameService skuNameService;
 
+    /**
+     * CSVレコードを処理し、決済マップを更新します。
+     *
+     * @param csvRecord     CSVレコード
+     * @param settlementMap 決済マップ
+     */
     public void process(CSVRecord csvRecord, Map<SettlementId, Settlement> settlementMap) {
         if (isSummaryRow(csvRecord)) {
             return;
@@ -44,10 +56,22 @@ public class SettlementReportProcessor {
                 });
     }
 
+    /**
+     * サマリー行かどうかを判定します。
+     *
+     * @param csvRecord CSVレコード
+     * @return サマリー行の場合はtrue、そうでない場合はfalse
+     */
     private boolean isSummaryRow(CSVRecord csvRecord) {
         return "".equals(csvRecord.get(ReportConstants.HEADER_TRANSACTION_TYPE)) && "".equals(csvRecord.get(ReportConstants.HEADER_ORDER_ID));
     }
 
+    /**
+     * CSVレコードから決済エンティティを構築します。
+     *
+     * @param csvRecord CSVレコード
+     * @return 決済エンティティ
+     */
     private Settlement buildSettlement(CSVRecord csvRecord) {
         Settlement settlement = new Settlement();
         settlement.setSettlementId(csvRecord.get(ReportConstants.HEADER_SETTLEMENT_ID));
@@ -63,11 +87,23 @@ public class SettlementReportProcessor {
         return settlement;
     }
 
+    /**
+     * 注文IDを取得します。
+     *
+     * @param csvRecord CSVレコード
+     * @return 注文ID
+     */
     private String getOrderId(CSVRecord csvRecord) {
         String orderId = csvRecord.get(ReportConstants.HEADER_ORDER_ID);
         return (orderId != null && !orderId.isEmpty()) ? orderId : Miscellaneous.NOT_APPLICABLE;
     }
 
+    /**
+     * 注文商品コードを取得します。
+     *
+     * @param csvRecord CSVレコード
+     * @return 注文商品コード
+     */
     private Long getOrderItemCode(CSVRecord csvRecord) {
         String orderItemCodeStr = csvRecord.get(ReportConstants.HEADER_ORDER_ITEM_CODE);
         if (orderItemCodeStr == null || orderItemCodeStr.isEmpty()) {
@@ -87,6 +123,12 @@ public class SettlementReportProcessor {
         return 0L;
     }
 
+    /**
+     * 購入数量を取得します。
+     *
+     * @param csvRecord CSVレコード
+     * @return 購入数量
+     */
     private Integer getQuantityPurchased(CSVRecord csvRecord) {
         String quantityStr = csvRecord.get(ReportConstants.HEADER_QUANTITY_PURCHASED);
         if (quantityStr != null && !quantityStr.isEmpty()) {
@@ -95,6 +137,11 @@ public class SettlementReportProcessor {
         return null;
     }
 
+    /**
+     * SKU名を更新または作成します。
+     *
+     * @param sku SKU
+     */
     private void updateSkuName(String sku) {
         if (sku != null && !sku.isEmpty()) {
             skuNameService.findBySku(sku).ifPresentOrElse(

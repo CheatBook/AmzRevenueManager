@@ -10,13 +10,24 @@ import io.github.cheatbook.amzrevenuemanager.application.service.MonthlySummaryA
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 月次収益サマリーに関するコントローラークラスです。
+ */
 @RestController
 @RequestMapping("/api/monthly-summary")
 @RequiredArgsConstructor
 public class MonthlyRevenueSummaryController {
 
+    /**
+     * 月次サマリーアプリケーションサービス
+     */
     private final MonthlySummaryApplicationService monthlySummaryApplicationService;
 
+    /**
+     * 月次収益サマリーを取得します。
+     *
+     * @return 親SKUごとの月次収益サマリーDTOのリスト
+     */
     @GetMapping
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
         return monthlySummaryApplicationService.getMonthlyRevenueSummary();

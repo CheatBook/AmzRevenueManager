@@ -1,3 +1,6 @@
+/**
+ * インターフェース層（Web）のクラスを定義するパッケージです。
+ */
 package io.github.cheatbook.amzrevenuemanager.interfaces.web;
 
 import org.springframework.http.HttpStatus;
@@ -16,14 +19,26 @@ import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementI
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * ファイルアップロードに関するコントローラークラスです。
+ */
 @RestController
 @RequestMapping("/api/sales")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*") // 開発のため全オリジンを許可。本番では特定のオリジンに限定すべき
 public class FileUploadController {
 
+    /**
+     * レポートアプリケーションサービス
+     */
     private final ReportApplicationService reportApplicationService;
 
+    /**
+     * 決済レポートファイルをアップロードします。
+     *
+     * @param files アップロードされた決済レポートファイルのリスト
+     * @return レスポンスエンティティ
+     */
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("files") List<MultipartFile> files) {
         if (files.isEmpty()) {
@@ -56,6 +71,12 @@ public class FileUploadController {
         return ResponseEntity.ok(responseMessageBuilder.toString());
     }
 
+    /**
+     * 広告レポートファイルをアップロードします。
+     *
+     * @param file アップロードされた広告レポートファイル
+     * @return レスポンスエンティティ
+     */
     @PostMapping("/upload-advertisement")
     public ResponseEntity<String> handleAdvertisementUpload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -72,6 +93,4 @@ public class FileUploadController {
                     .body("広告レポートの処理中にエラーが発生しました: " + e.getMessage());
         }
     }
-
-
 }

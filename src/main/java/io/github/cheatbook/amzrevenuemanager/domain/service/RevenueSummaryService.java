@@ -13,9 +13,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 収益サマリーを計算するサービスクラスです。
+ */
 @Service
 public class RevenueSummaryService {
 
+    /**
+     * SKUごとの収益サマリーを計算します。
+     *
+     * @param settlements 決済リスト
+     * @param skuNames    SKU名リスト
+     * @return SKUをキー、SKU収益サマリーDTOを値とするマップ
+     */
     public Map<String, SkuRevenueSummaryDto> calculateSkuRevenueSummaries(List<Settlement> settlements, List<SkuName> skuNames) {
         Map<String, String> skuToJapaneseNameMap = skuNames.stream()
                 .collect(Collectors.toMap(SkuName::getSku, SkuName::getJapaneseName, (name1, name2) -> name1));

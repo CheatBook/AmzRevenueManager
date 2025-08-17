@@ -1,3 +1,6 @@
+/**
+ * ドメイン層のインポーター関連のクラスを定義するパッケージです。
+ */
 package io.github.cheatbook.amzrevenuemanager.domain.importer;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
@@ -15,13 +18,30 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 広告レポートのインポートサービスクラスです。
+ */
 @Service
 @RequiredArgsConstructor
 public class AdvertisementImportService {
 
+    /**
+     * 広告リポジトリ
+     */
     private final AdvertisementRepository advertisementRepository;
+
+    /**
+     * 広告レポートプロセッサー
+     */
     private final AdvertisementReportProcessor processor;
 
+    /**
+     * 広告レポートをインポートします。
+     *
+     * @param file アップロードされた広告レポートファイル
+     * @throws IOException              ファイルの読み込みに失敗した場合
+     * @throws SkuNameNotFoundException SKU名が見つからない場合
+     */
     @Transactional(rollbackFor = SkuNameNotFoundException.class)
     public void importReport(MultipartFile file) throws IOException, SkuNameNotFoundException {
         try (AdvertisementReportReader reader = new AdvertisementReportReader(file)) {

@@ -15,14 +15,25 @@ import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.application.service.SkuNameApplicationService;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * SKU名に関するコントローラークラスです。
+ */
 @RestController
 @RequestMapping("/api/sku-names")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*") // 開発のため全オリジンを許可。本番では特定のオリジンに限定すべき
 public class SkuNameController {
 
+    /**
+     * SKU名アプリケーションサービス
+     */
     private final SkuNameApplicationService skuNameApplicationService;
 
+    /**
+     * すべてのSKU名を取得します。
+     *
+     * @return レスポンスエンティティ
+     */
     @GetMapping
     public ResponseEntity<List<SkuName>> getAllSkuNames() {
         try {
@@ -34,12 +45,17 @@ public class SkuNameController {
         }
     }
 
+    /**
+     * 決済情報から重複しないSKUのリストを取得します。
+     *
+     * @return レスポンスエンティティ
+     */
     @GetMapping("/distinct-skus")
     public ResponseEntity<List<String>> getDistinctSkusFromSettlements() {
         try {
-            // This endpoint is no longer needed as SKU names are handled within the application
-            // Consider removing it or adapting it to a new requirement.
-            // For now, we will comment it out.
+            // このエンドポイントはアプリケーション内でSKU名が処理されるようになったため、不要になりました。
+            // 削除するか、新しい要件に適応させることを検討してください。
+            // 現時点ではコメントアウトしておきます。
             // List<String> distinctSkus = skuNameService.findDistinctSkusFromSettlements();
             List<String> distinctSkus = new java.util.ArrayList<>();
             return ResponseEntity.ok(distinctSkus);
@@ -49,6 +65,12 @@ public class SkuNameController {
         }
     }
 
+    /**
+     * SKU名を保存します。
+     *
+     * @param skuName SKU名
+     * @return レスポンスエンティティ
+     */
     @PostMapping
     public ResponseEntity<SkuName> saveSkuName(@RequestBody SkuName skuName) {
         try {
@@ -59,10 +81,17 @@ public class SkuNameController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * 親SKU名を作成します。
+     *
+     * @param parentSkuRequest 親SKUリクエスト
+     * @return レスポンスエンティティ
+     */
     @PostMapping("/parent-sku")
     public ResponseEntity<SkuName> createParentSkuName(@RequestBody SkuName parentSkuRequest) {
         try {
-            // This logic should be handled by the application service
+            // このロジックはアプリケーションサービスで処理されるべきです
             SkuName parentSku = new SkuName();
             parentSku.setJapaneseName(parentSkuRequest.getJapaneseName());
             SkuName createdParentSku = skuNameApplicationService.saveSkuName(parentSku);
@@ -73,6 +102,11 @@ public class SkuNameController {
         }
     }
 
+    /**
+     * 親SKUのリストを取得します。
+     *
+     * @return レスポンスエンティティ
+     */
     @GetMapping("/parent-skus")
     public ResponseEntity<List<SkuName>> getParentSkus() {
         try {

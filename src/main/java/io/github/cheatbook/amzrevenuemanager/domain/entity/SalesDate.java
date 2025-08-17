@@ -8,14 +8,23 @@ import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 売上日エンティティです。
+ */
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalesDate {
 
+    /**
+     * Amazon注文ID
+     */
     @Id
     private String amazonOrderId;
 
+    /**
+     * 購入日
+     */
     private LocalDateTime purchaseDate;
 }

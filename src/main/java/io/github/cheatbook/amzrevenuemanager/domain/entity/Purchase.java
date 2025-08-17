@@ -9,6 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 仕入れエンティティです。
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -16,17 +19,35 @@ import lombok.NoArgsConstructor;
 @IdClass(PurchaseId.class)
 public class Purchase {
 
+    /**
+     * 親SKU
+     */
     @Id
     private String parentSku;
 
+    /**
+     * 仕入れ日
+     */
     @Id
     private LocalDate purchaseDate;
 
+    /**
+     * 数量
+     */
     private Integer quantity;
 
+    /**
+     * 金額
+     */
     private Integer amount;
 
+    /**
+     * 関税
+     */
     private Integer tariff;
 
+    /**
+     * 単価
+     */
     private Double unitPrice;
 }

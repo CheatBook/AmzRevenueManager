@@ -1,3 +1,6 @@
+/**
+ * ドメイン層のインポーターのプロセッサー関連のクラスを定義するパッケージです。
+ */
 package io.github.cheatbook.amzrevenuemanager.domain.importer.processor;
 
 import io.github.cheatbook.amzrevenuemanager.domain.constant.DateTimeFormats;
@@ -18,13 +21,30 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 広告レポートのレコードを処理するクラスです。
+ */
 @Component
 @RequiredArgsConstructor
 public class AdvertisementReportProcessor {
 
+    /**
+     * SKU名リポジトリ
+     */
     private final SkuNameRepository skuNameRepository;
+
+    /**
+     * 広告リポジトリ
+     */
     private final AdvertisementRepository advertisementRepository;
 
+    /**
+     * CSVレコードを処理し、広告マップを更新します。
+     *
+     * @param csvRecord        CSVレコード
+     * @param advertisementMap 広告マップ
+     * @throws SkuNameNotFoundException SKU名が見つからない場合
+     */
     public void process(CSVRecord csvRecord, Map<String, Advertisement> advertisementMap) throws SkuNameNotFoundException {
         String dateStr = csvRecord.get(ReportConstants.HEADER_AD_DATE);
         String campaignName = csvRecord.get(ReportConstants.HEADER_AD_CAMPAIGN_NAME);
@@ -38,7 +58,7 @@ public class AdvertisementReportProcessor {
         try {
             date = LocalDate.parse(dateStr, DateTimeFormats.ADVERTISEMENT_DATE_FORMAT);
         } catch (DateTimeParseException e) {
-            // TODO: Log error
+            // TODO: エラーログを記録する
             return;
         }
 

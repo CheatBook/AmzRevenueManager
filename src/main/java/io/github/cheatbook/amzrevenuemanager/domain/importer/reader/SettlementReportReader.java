@@ -12,11 +12,30 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Iterator;
 
+/**
+ * 決済レポートのリーダーです。
+ * <p>
+ * AutoCloseableを実装しているため、try-with-resources文で使用できます。
+ * </p>
+ */
 public class SettlementReportReader implements AutoCloseable {
 
+    /**
+     * CSVパーサー
+     */
     private final CSVParser csvParser;
+
+    /**
+     * CSVイテレーター
+     */
     private final Iterator<CSVRecord> csvIterator;
 
+    /**
+     * コンストラクタ
+     *
+     * @param file アップロードされた決済レポートファイル
+     * @throws IOException ファイルの読み込みに失敗した場合
+     */
     public SettlementReportReader(MultipartFile file) throws IOException {
         Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), ReportConstants.CHARSET_SHIFT_JIS));
         CSVFormat format = CSVFormat.Builder.create(CSVFormat.TDF)
@@ -28,10 +47,20 @@ public class SettlementReportReader implements AutoCloseable {
         this.csvIterator = this.csvParser.iterator();
     }
 
+    /**
+     * CSVイテレーターを取得します。
+     *
+     * @return CSVイテレーター
+     */
     public Iterator<CSVRecord> getCsvIterator() {
         return csvIterator;
     }
 
+    /**
+     * リソースをクローズします。
+     *
+     * @throws IOException クローズに失敗した場合
+     */
     @Override
     public void close() throws IOException {
         if (csvParser != null && !csvParser.isClosed()) {

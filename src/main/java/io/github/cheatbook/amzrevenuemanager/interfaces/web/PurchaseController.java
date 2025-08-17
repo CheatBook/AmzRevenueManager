@@ -21,14 +21,26 @@ import io.github.cheatbook.amzrevenuemanager.application.service.PurchaseApplica
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 仕入れに関するコントローラークラスです。
+ */
 @RestController
 @RequestMapping("/api/purchases")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class PurchaseController {
 
+    /**
+     * 仕入れアプリケーションサービス
+     */
     private final PurchaseApplicationService purchaseApplicationService;
 
+    /**
+     * 仕入れ情報を保存します。
+     *
+     * @param purchaseDto 仕入れ情報DTO
+     * @return レスポンスエンティティ
+     */
     @PostMapping
     public ResponseEntity<Purchase> savePurchase(@RequestBody PurchaseDto purchaseDto) {
         try {
@@ -40,6 +52,11 @@ public class PurchaseController {
         }
     }
 
+    /**
+     * すべての仕入れ情報を取得します。
+     *
+     * @return レスポンスエンティティ
+     */
     @GetMapping
     public ResponseEntity<List<Purchase>> getAllPurchases() {
         try {
@@ -51,6 +68,14 @@ public class PurchaseController {
         }
     }
 
+    /**
+     * 仕入れ情報を更新します。
+     *
+     * @param parentSku    親SKU
+     * @param purchaseDate 仕入れ日
+     * @param purchaseDto  仕入れ情報DTO
+     * @return レスポンスエンティティ
+     */
     @PutMapping("/{parentSku}/{purchaseDate}")
     public ResponseEntity<Purchase> updatePurchase(
             @PathVariable String parentSku,

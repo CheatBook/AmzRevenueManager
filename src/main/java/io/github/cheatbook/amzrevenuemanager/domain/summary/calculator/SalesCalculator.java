@@ -15,9 +15,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 売上を計算するクラスです。
+ */
 @Component
 public class SalesCalculator {
 
+    /**
+     * 売上を計算し、親SKUごとのサマリーマップを返します。
+     *
+     * @param settlements                決済リスト
+     * @param skuNames                   SKU名リスト
+     * @param parentSkuToJapaneseNameMap 親SKUと日本語名のマップ
+     * @return 親SKUごとのサマリーマップ
+     */
     public Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> calculate(
             List<Settlement> settlements, List<SkuName> skuNames, Map<String, String> parentSkuToJapaneseNameMap) {
 
@@ -78,6 +89,13 @@ public class SalesCalculator {
         return parentSkuSummaryMap;
     }
 
+    /**
+     * 空のサマリーオブジェクトを作成します。
+     *
+     * @param parentSku                  親SKU
+     * @param parentSkuToJapaneseNameMap 親SKUと日本語名のマップ
+     * @return 空のサマリーオブジェクト
+     */
     private ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto createEmptySummary(String parentSku, Map<String, String> parentSkuToJapaneseNameMap) {
         String japaneseName = Miscellaneous.OTHER_TRANSACTION_PARENT_SKU.equals(parentSku)
                 ? Miscellaneous.OTHER_TRANSACTION_PARENT_SKU

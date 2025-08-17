@@ -1,3 +1,6 @@
+/**
+ * ドメイン層のサマリー計算関連のクラスを定義するパッケージです。
+ */
 package io.github.cheatbook.amzrevenuemanager.domain.summary.calculator;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
@@ -8,9 +11,19 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 広告費を計算するクラスです。
+ */
 @Component
 public class AdvertisementCostCalculator {
 
+    /**
+     * 広告費を計算し、親SKUごとのサマリーマップを更新します。
+     *
+     * @param advertisements             広告リスト
+     * @param parentSkuSummaryMap        親SKUごとのサマリーマップ
+     * @param parentSkuToJapaneseNameMap 親SKUと日本語名のマップ
+     */
     public void calculate(List<Advertisement> advertisements, Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap, Map<String, String> parentSkuToJapaneseNameMap) {
         if (advertisements == null) {
             return;
@@ -26,6 +39,13 @@ public class AdvertisementCostCalculator {
         });
     }
 
+    /**
+     * 空のサマリーオブジェクトを作成します。
+     *
+     * @param parentSku                  親SKU
+     * @param parentSkuToJapaneseNameMap 親SKUと日本語名のマップ
+     * @return 空のサマリーオブジェクト
+     */
     private ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto createEmptySummary(String parentSku, Map<String, String> parentSkuToJapaneseNameMap) {
         return ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto.builder()
                 .parentSku(parentSku)

@@ -13,12 +13,24 @@ import io.github.cheatbook.amzrevenuemanager.domain.repository.PurchaseRepositor
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 仕入れに関するサービスクラスです。
+ */
 @Service
 @RequiredArgsConstructor
 public class PurchaseService {
 
+    /**
+     * 仕入れリポジトリ
+     */
     private final PurchaseRepository purchaseRepository;
 
+    /**
+     * 仕入れ情報を保存します。
+     *
+     * @param purchaseDto 仕入れ情報DTO
+     * @return 保存された仕入れ情報
+     */
     @Transactional
     public Purchase savePurchase(PurchaseDto purchaseDto) {
         Purchase purchase = new Purchase();
@@ -36,10 +48,23 @@ public class PurchaseService {
         return purchaseRepository.save(purchase);
     }
 
+    /**
+     * すべての仕入れ情報を取得します。
+     *
+     * @return 仕入れ情報のリスト
+     */
     public List<Purchase> getAllPurchases() {
         return purchaseRepository.findAll();
     }
 
+    /**
+     * 仕入れ情報を更新します。
+     *
+     * @param parentSku    親SKU
+     * @param purchaseDate 仕入れ日
+     * @param purchaseDto  仕入れ情報DTO
+     * @return 更新された仕入れ情報
+     */
     @Transactional
     public Purchase updatePurchase(String parentSku, LocalDate purchaseDate, PurchaseDto purchaseDto) {
         PurchaseId purchaseId = new PurchaseId(parentSku, purchaseDate);

@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 月次収益サマリーを提供するサービスクラスです。
+ */
 @Service
 @RequiredArgsConstructor
 public class MonthlyRevenueSummaryService {
@@ -38,6 +41,11 @@ public class MonthlyRevenueSummaryService {
     private final ProductCostCalculator productCostCalculator;
     private final SummaryAggregator summaryAggregator;
 
+    /**
+     * 月次収益サマリーを取得します。
+     *
+     * @return 親SKUごとの月次収益サマリーDTOのリスト
+     */
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
         List<Settlement> allSettlements = settlementRepository.findAll();
         List<SkuName> skuNames = cacheableDataService.findAllSkuNames();

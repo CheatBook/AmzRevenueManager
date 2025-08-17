@@ -21,14 +21,35 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.HierarchicalSkuR
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.SkuRevenueSummaryDto;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 階層的な収益サマリーを提供するサービスクラスです。
+ */
 @Service
 @RequiredArgsConstructor
 public class HierarchicalRevenueSummaryService {
 
+    /**
+     * 決済リポジトリ
+     */
     private final SettlementRepository settlementRepository;
+
+    /**
+     * キャッシュ可能データサービス
+     */
     private final CacheableDataService cacheableDataService;
+
+    /**
+     * 収益サマリーサービス
+     */
     private final RevenueSummaryService revenueSummaryService;
 
+    /**
+     * 階層的なSKU収益サマリーを取得します。
+     *
+     * @param startDate 開始日
+     * @param endDate   終了日
+     * @return 階層的なSKU収益サマリーDTOのリスト
+     */
     public List<HierarchicalSkuRevenueSummaryDto> getHierarchicalSkuRevenueSummary(LocalDate startDate, LocalDate endDate) {
         List<Settlement> allSettlements;
         if (startDate != null && endDate != null) {
@@ -42,7 +63,7 @@ public class HierarchicalRevenueSummaryService {
 
         Map<String, SkuRevenueSummaryDto> skuSummaryMap = revenueSummaryService.calculateSkuRevenueSummaries(allSettlements, skuNames);
 
-        // Build hierarchy and process summaries
+        // 階層を構築し、サマリーを処理する
         List<HierarchicalSkuRevenueSummaryDto> hierarchicalSummaries = new ArrayList<>();
         Set<String> processedSkus = new HashSet<>();
 
