@@ -2,7 +2,6 @@ package io.github.cheatbook.amzrevenuemanager.domain.summary.calculator;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
 import io.github.cheatbook.amzrevenuemanager.domain.summary.context.MonthlySummaryContext;
-import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

@@ -1,8 +1,6 @@
 package io.github.cheatbook.amzrevenuemanager.domain.summary.calculator;
 
 import io.github.cheatbook.amzrevenuemanager.domain.constant.Miscellaneous;
-import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
-import java.util.List;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.summary.context.MonthlySummaryContext;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;

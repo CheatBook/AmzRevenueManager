@@ -1,7 +1,6 @@
 package io.github.cheatbook.amzrevenuemanager.domain.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
