@@ -150,10 +150,10 @@ export default function PurchasePage() {
   return (
     <div className="card">
       <h2>仕入れ登録</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>
-            仕入れ対象 (親SKU):
+      <form onSubmit={handleSubmit} className="purchase-form">
+        <div className="form-row">
+          <div className="form-group">
+            <label>仕入れ対象 (親SKU):</label>
             <select
               value={selectedParentSku}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedParentSku(e.target.value)}
@@ -165,11 +165,9 @@ export default function PurchasePage() {
                 </option>
               ))}
             </select>
-          </label>
-        </div>
-        <div className="form-group">
-          <label>
-            仕入れ日:
+          </div>
+          <div className="form-group">
+            <label>仕入れ日:</label>
             <DatePicker
               selected={purchaseDate}
               onChange={(date: Date | null) => setPurchaseDate(date)}
@@ -181,11 +179,9 @@ export default function PurchasePage() {
               popperPlacement="bottom-start"
               required
             />
-          </label>
-        </div>
-        <div className="form-group">
-          <label>
-            数量:
+          </div>
+          <div className="form-group">
+            <label>数量:</label>
             <input
               type="number"
               value={quantity}
@@ -193,11 +189,9 @@ export default function PurchasePage() {
               required
               min="1"
             />
-          </label>
-        </div>
-        <div className="form-group">
-          <label>
-            金額:
+          </div>
+          <div className="form-group">
+            <label>金額:</label>
             <input
               type="number"
               value={amount}
@@ -205,31 +199,31 @@ export default function PurchasePage() {
               required
               min="1"
             />
-          </label>
-        </div>
-        <div className="form-group">
-          <label>
-            関税:
+          </div>
+          <div className="form-group">
+            <label>関税:</label>
             <input
               type="number"
               value={tariff}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setTariff(Number(e.target.value))}
             />
-          </label>
+          </div>
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? (editingPurchase ? '更新中...' : '登録中...') : (editingPurchase ? '更新' : '登録')}
-        </button>
-        {editingPurchase && (
-          <button type="button" onClick={handleClearForm} style={{ marginLeft: '10px' }}>
-            クリア
+        <div className="form-actions">
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? (editingPurchase ? '更新中...' : '登録中...') : (editingPurchase ? '更新' : '登録')}
           </button>
-        )}
+          {editingPurchase && (
+            <button type="button" onClick={handleClearForm}>
+              クリア
+            </button>
+          )}
+        </div>
       </form>
       {message && <p style={{ color: 'green' }}>{message}</p>}
       {error && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{error}</p>}
 
-      <div className="card">
+      <div className="card" style={{ marginTop: '2rem' }}>
         <h2>仕入れ一覧</h2>
         <div className="table-container">
           <table>

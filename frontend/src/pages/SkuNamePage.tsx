@@ -121,53 +121,57 @@ export default function SkuNamePage() {
   return (
     <div className="card">
       <h2>SKU名管理</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="sku">SKU:</label>
-          <select
-            id="sku"
-            value={selectedSku}
-            onChange={handleSelectedSkuChange}
-            disabled={isLoading}
-            className="form-select"
-          >
-            <option value="">選択してください</option>
-            {distinctSkus.map((sku, index) => (
-              <option key={sku || `sku-${index}`} value={sku}>
-                {sku}
-              </option>
-            ))}
-          </select>
+      <form onSubmit={handleSubmit} className="sku-name-form">
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="sku">SKU:</label>
+            <select
+              id="sku"
+              value={selectedSku}
+              onChange={handleSelectedSkuChange}
+              disabled={isLoading}
+              className="form-select"
+            >
+              <option value="">選択してください</option>
+              {distinctSkus.map((sku, index) => (
+                <option key={sku || `sku-${index}`} value={sku}>
+                  {sku}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="japaneseName">日本語名:</label>
+            <input
+              type="text"
+              id="japaneseName"
+              value={newJapaneseName}
+              onChange={handleJapaneseNameChange}
+              disabled={isLoading}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="parentSku">親SKU:</label>
+            <select
+              id="parentSku"
+              value={selectedParentSku}
+              onChange={handleParentSkuChange}
+              disabled={isLoading}
+            >
+              <option value="">選択してください</option>
+              {parentSkus.map((parent, index) => (
+                <option key={parent.sku || `parent-${index}`} value={parent.sku}>
+                  {parent.japaneseName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label htmlFor="japaneseName">日本語名:</label>
-          <input
-            type="text"
-            id="japaneseName"
-            value={newJapaneseName}
-            onChange={handleJapaneseNameChange}
-            disabled={isLoading}
-          />
+        <div className="form-actions">
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? '保存中...' : 'SKU名を保存'}
+          </button>
         </div>
-        <div>
-          <label htmlFor="parentSku">親SKU:</label>
-          <select
-            id="parentSku"
-            value={selectedParentSku}
-            onChange={handleParentSkuChange}
-            disabled={isLoading}
-          >
-            <option value="">選択してください</option>
-            {parentSkus.map((parent, index) => (
-              <option key={parent.sku || `parent-${index}`} value={parent.sku}>
-                {parent.japaneseName}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? '保存中...' : 'SKU名を保存'}
-        </button>
       </form>
       {message && <p>{message}</p>}
 

@@ -70,20 +70,24 @@ export default function ParentSkuPage() {
     <>
       <div className="card">
         <h2>親SKU登録</h2>
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="japaneseName">日本語名:</label>
-            <input
-              type="text"
-              id="japaneseName"
-              value={newJapaneseName}
-              onChange={handleJapaneseNameChange}
-              disabled={isLoading}
-            />
+        <form onSubmit={handleSubmit} className="parent-sku-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="japaneseName">日本語名:</label>
+              <input
+                type="text"
+                id="japaneseName"
+                value={newJapaneseName}
+                onChange={handleJapaneseNameChange}
+                disabled={isLoading}
+              />
+            </div>
           </div>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? '保存中...' : '親SKU名を保存'}
-          </button>
+          <div className="form-actions">
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? '保存中...' : '親SKU名を保存'}
+            </button>
+          </div>
         </form>
         {message && <p>{message}</p>}
       </div>
