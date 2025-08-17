@@ -19,9 +19,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,36 +40,38 @@ public class MonthlyRevenueSummaryService {
     private final SummaryAggregator summaryAggregator;
 
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
-        List<Settlement> settlements = settlementRepository.findAll();
+        List<Settlement> allSettlements = settlementRepository.findAll();
         List<SkuName> skuNames = skuNameRepository.findAll();
-        List<Advertisement> advertisements = advertisementRepository.findAll();
-        List<Purchase> purchases = purchaseRepository.findAll();
+        List<Advertisement> allAdvertisements = advertisementRepository.findAll();
+        List<Purchase> allPurchases = purchaseRepository.findAll();
 
-        MonthlySummaryContext context = new MonthlySummaryContext(settlements, skuNames, advertisements, purchases);
-        context.setParentSkuToJapaneseNameMap(skuNames.stream()
-                .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty() && s.getJapaneseName() != null)
-                .collect(Collectors.toMap(SkuName::getParentSku, SkuName::getJapaneseName, (existing, replacement) -> existing)));
+        Map<YearMonth, List<Settlement>> settlementsByMonth = allSettlements.stream()
+                .collect(Collectors.groupingBy(s -> YearMonth.from(s.getPostedDateTime())));
 
-        salesCalculator.calculate(context); // This calculates transactionsByMonth
+        Map<YearMonth, List<Advertisement>> advertisementsByMonth = allAdvertisements.stream()
+                .collect(Collectors.groupingBy(a -> YearMonth.from(a.getId().getDate())));
+
+        Map<YearMonth, List<Purchase>> purchasesByMonth = allPurchases.stream()
+                .collect(Collectors.groupingBy(p -> YearMonth.from(p.getPurchaseDate())));
+
+        Set<YearMonth> yearMonths = settlementsByMonth.keySet();
 
         List<ParentSkuMonthlySummaryDto> summaryList = new ArrayList<>();
-        Map<YearMonth, List<Settlement>> transactionsByMonth = context.getTransactionsByMonth();
 
-        for (Map.Entry<YearMonth, List<Settlement>> entry : transactionsByMonth.entrySet()) {
-            YearMonth yearMonth = entry.getKey();
-            List<Settlement> monthlyTransactions = entry.getValue();
+        for (YearMonth yearMonth : yearMonths) {
+            List<Settlement> monthlySettlements = settlementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
+            List<Advertisement> monthlyAdvertisements = advertisementsByMonth.getOrDefault(yearMonth, Collections.emptyList());
+            List<Purchase> monthlyPurchases = purchasesByMonth.getOrDefault(yearMonth, Collections.emptyList());
 
-            // Create a new context for each month to ensure data isolation
-            MonthlySummaryContext monthlyContext = new MonthlySummaryContext(monthlyTransactions, skuNames, advertisements, purchases);
-            monthlyContext.setParentSkuToJapaneseNameMap(context.getParentSkuToJapaneseNameMap());
-            monthlyContext.setSkuToParentSkuMap(context.getSkuToParentSkuMap());
-            monthlyContext.setTransactionsByMonth(transactionsByMonth); // Set original transactionsByMonth for advertisement cost calculation
+            MonthlySummaryContext monthlyContext = new MonthlySummaryContext(monthlySettlements, skuNames, monthlyAdvertisements, monthlyPurchases);
+            monthlyContext.setParentSkuToJapaneseNameMap(skuNames.stream()
+                    .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty() && s.getJapaneseName() != null)
+                    .collect(Collectors.toMap(SkuName::getParentSku, SkuName::getJapaneseName, (existing, replacement) -> existing)));
 
-            // Recalculate sales and ad cost for the specific month
             salesCalculator.calculate(monthlyContext);
             advertisementCostCalculator.calculate(monthlyContext);
             productCostCalculator.calculate(monthlyContext);
-            
+
             ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto monthlyTotal = summaryAggregator.aggregate(monthlyContext);
 
             summaryList.add(ParentSkuMonthlySummaryDto.builder()
