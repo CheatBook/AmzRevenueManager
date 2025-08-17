@@ -4,12 +4,11 @@ import io.github.cheatbook.amzrevenuemanager.domain.constant.AmountDescription;
 import io.github.cheatbook.amzrevenuemanager.domain.constant.Miscellaneous;
 import io.github.cheatbook.amzrevenuemanager.domain.constant.TransactionType;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
-import io.github.cheatbook.amzrevenuemanager.domain.summary.context.MonthlySummaryContext;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,37 +18,36 @@ import java.util.stream.Collectors;
 @Component
 public class SalesCalculator {
 
-    public void calculate(MonthlySummaryContext context) {
-        Map<String, String> skuToParentSkuMap = context.getSkuNames().stream()
-                .filter(s -> s.getParentSku() != null)
-                .collect(Collectors.toMap(s -> s.getSku(), s -> s.getParentSku(), (existing, replacement) -> existing));
-        context.setSkuToParentSkuMap(skuToParentSkuMap);
+    public Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> calculate(
+            List<Settlement> settlements, List<SkuName> skuNames, Map<String, String> parentSkuToJapaneseNameMap) {
 
-        if (context.getTransactionsByMonth() == null) {
-            Map<YearMonth, List<Settlement>> transactionsByMonth = new HashMap<>();
-            for (Settlement t : context.getSettlements()) {
-                if (TransactionType.OTHER.getValue().equals(t.getTransactionType())) {
-                    t.setParentSku(Miscellaneous.OTHER_TRANSACTION_PARENT_SKU);
-                } else {
-                    t.setParentSku(context.getSkuToParentSkuMap().get(t.getSku()));
+        Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap = new HashMap<>();
+        Map<String, List<String>> parentSkuToOrderIdsMap = new HashMap<>();
+
+        Map<String, String> skuToParentSkuMap = skuNames.stream()
+                .filter(s -> s.getParentSku() != null && !s.getParentSku().isEmpty())
+                .collect(Collectors.toMap(SkuName::getSku, SkuName::getParentSku, (existing, replacement) -> existing));
+
+        for (Settlement settlement : settlements) {
+            String sku = settlement.getSku();
+            String parentSku;
+
+            if (TransactionType.OTHER.getValue().equals(settlement.getTransactionType())) {
+                parentSku = Miscellaneous.OTHER_TRANSACTION_PARENT_SKU;
+            } else {
+                parentSku = skuToParentSkuMap.get(sku);
+                if (parentSku == null) {
+                    parentSku = sku != null ? sku : Miscellaneous.NOT_APPLICABLE;
                 }
-                YearMonth yearMonth = YearMonth.from(t.getPostedDateTime());
-                transactionsByMonth.computeIfAbsent(yearMonth, k -> new ArrayList<>()).add(t);
             }
-            context.setTransactionsByMonth(transactionsByMonth);
-        }
-        calculateMonthlySales(context, context.getSettlements());
-    }
+            settlement.setParentSku(parentSku);
 
-    private void calculateMonthlySales(MonthlySummaryContext context, List<Settlement> monthlyTransactions) {
-        for (Settlement t : monthlyTransactions) {
-            String parentSku = t.getParentSku() != null ? t.getParentSku() : Miscellaneous.NOT_APPLICABLE;
-            ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto summary = context.getParentSkuSummaryMap()
-                    .computeIfAbsent(parentSku, k -> createEmptySummary(k, context.getParentSkuToJapaneseNameMap()));
+            ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto summary = parentSkuSummaryMap
+                    .computeIfAbsent(parentSku, k -> createEmptySummary(k, parentSkuToJapaneseNameMap));
 
-            String amountDescriptionStr = t.getAmountDescription() != null ? t.getAmountDescription().trim() : "";
+            String amountDescriptionStr = settlement.getAmountDescription() != null ? settlement.getAmountDescription().trim() : "";
             AmountDescription amountDescription = AmountDescription.fromString(amountDescriptionStr);
-            BigDecimal amount = t.getAmount();
+            BigDecimal amount = settlement.getAmount();
 
             if (amountDescription != null) {
                 switch (amountDescription) {
@@ -68,10 +66,16 @@ public class SalesCalculator {
                 summary.setTotalFees(summary.getTotalFees().add(amount));
             }
 
-            if (!Miscellaneous.OTHER_TRANSACTION_PARENT_SKU.equals(parentSku) && t.getOrderId() != null && !t.getOrderId().isEmpty()) {
-                context.getParentSkuToOrderIdsMap().computeIfAbsent(parentSku, k -> new ArrayList<>()).add(t.getOrderId());
+            if (!Miscellaneous.OTHER_TRANSACTION_PARENT_SKU.equals(parentSku) && settlement.getOrderId() != null && !settlement.getOrderId().isEmpty()) {
+                parentSkuToOrderIdsMap.computeIfAbsent(parentSku, k -> new ArrayList<>()).add(settlement.getOrderId());
             }
         }
+
+        parentSkuSummaryMap.forEach((parentSku, summary) -> {
+            summary.setOrderCount((int) parentSkuToOrderIdsMap.getOrDefault(parentSku, new ArrayList<>()).stream().distinct().count());
+        });
+
+        return parentSkuSummaryMap;
     }
 
     private ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto createEmptySummary(String parentSku, Map<String, String> parentSkuToJapaneseNameMap) {

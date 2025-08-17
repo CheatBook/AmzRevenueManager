@@ -1,22 +1,20 @@
 package io.github.cheatbook.amzrevenuemanager.domain.summary;
 
 import io.github.cheatbook.amzrevenuemanager.domain.constant.Miscellaneous;
-import io.github.cheatbook.amzrevenuemanager.domain.summary.context.MonthlySummaryContext;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Map;
 
 @Component
 public class SummaryAggregator {
 
-    public ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto aggregate(MonthlySummaryContext context) {
+    public ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto aggregate(Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap) {
         ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto monthlyTotal = createEmptyMonthlyTotal();
 
-        context.getParentSkuSummaryMap().forEach((parentSku, summary) -> {
-            summary.setOrderCount((int) context.getParentSkuToOrderIdsMap().getOrDefault(parentSku, new ArrayList<>()).stream().distinct().count());
+        parentSkuSummaryMap.forEach((parentSku, summary) -> {
             summary.setTotalAdCost(summary.getTotalAdCost().negate());
             summary.setGrossProfit(summary.getTotalSales().add(summary.getTotalFees()).add(summary.getTotalAdCost()).add(summary.getProductCost()));
 

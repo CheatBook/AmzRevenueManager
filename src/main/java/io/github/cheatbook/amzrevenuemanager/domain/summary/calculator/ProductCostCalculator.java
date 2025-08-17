@@ -1,7 +1,7 @@
 package io.github.cheatbook.amzrevenuemanager.domain.summary.calculator;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
-import io.github.cheatbook.amzrevenuemanager.domain.summary.context.MonthlySummaryContext;
+import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,8 +13,12 @@ import java.util.stream.Collectors;
 @Component
 public class ProductCostCalculator {
 
-    public void calculate(MonthlySummaryContext context) {
-        Map<String, List<Purchase>> purchasesByParentSku = context.getPurchases().stream()
+    public void calculate(List<Purchase> purchases, Map<String, ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto> parentSkuSummaryMap) {
+        if (purchases == null) {
+            return;
+        }
+
+        Map<String, List<Purchase>> purchasesByParentSku = purchases.stream()
                 .filter(p -> p.getUnitPrice() != null)
                 .collect(Collectors.groupingBy(Purchase::getParentSku));
 
@@ -28,7 +32,7 @@ public class ProductCostCalculator {
             averageUnitPriceByParentSku.put(parentSku, average);
         }
 
-        context.getParentSkuSummaryMap().forEach((parentSku, summary) -> {
+        parentSkuSummaryMap.forEach((parentSku, summary) -> {
             Double averageUnitPrice = averageUnitPriceByParentSku.get(parentSku);
             if (averageUnitPrice != null) {
                 BigDecimal unitPrice = BigDecimal.valueOf(averageUnitPrice);
