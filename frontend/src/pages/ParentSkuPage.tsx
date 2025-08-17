@@ -89,22 +89,24 @@ export default function ParentSkuPage() {
       </div>
       <h3 style={{ marginTop: '20px' }}>登録済み親SKU一覧</h3>
       {parentSkus.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>日本語名</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parentSkus.map((item, index) => (
-              <tr key={item.sku || `parent-sku-${index}`}>
-                <td>{item.sku}</td>
-                <td>{item.japaneseName}</td>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>日本語名</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {parentSkus.map((item, index) => (
+                <tr key={item.sku || `parent-sku-${index}`}>
+                  <td data-label="SKU">{item.sku}</td>
+                  <td data-label="日本語名">{item.japaneseName}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p>登録されている親SKU名はありません。</p>
       )}

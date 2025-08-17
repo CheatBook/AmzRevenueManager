@@ -173,28 +173,30 @@ export default function SkuNamePage() {
 
       <h3 style={{ marginTop: '20px' }}>登録済みSKU名一覧</h3>
       {skuNames.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>日本語名</th>
-              <th>親SKU</th>
-            </tr>
-          </thead>
-          <tbody>
-            {skuNames.map((item, index) => (
-              <tr key={item.sku || `sku-${index}`}>
-                <td>{item.sku}</td>
-                <td>{item.japaneseName}</td>
-                <td>
-                  {item.parentSku
-                    ? parentSkus.find(p => p.sku === item.parentSku)?.japaneseName || item.parentSku
-                    : '-'}
-                </td>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>日本語名</th>
+                <th>親SKU</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {skuNames.map((item, index) => (
+                <tr key={item.sku || `sku-${index}`}>
+                  <td data-label="SKU">{item.sku}</td>
+                  <td data-label="日本語名">{item.japaneseName}</td>
+                  <td data-label="親SKU">
+                    {item.parentSku
+                      ? parentSkus.find(p => p.sku === item.parentSku)?.japaneseName || item.parentSku
+                      : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p>登録されているSKU名はありません。</p>
       )}

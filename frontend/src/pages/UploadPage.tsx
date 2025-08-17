@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function UploadPage() {
-  const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File | null }>({});
+  const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: FileList | null }>({});
   const [messages, setMessages] = useState<{ [key: string]: string }>({});
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<{ [key: string]: boolean }>({});
@@ -10,7 +10,7 @@ export default function UploadPage() {
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>, uploadType: string) => {
     if (event.target.files) {
-      setSelectedFiles({ ...selectedFiles, [uploadType]: event.target.files[0] });
+      setSelectedFiles({ ...selectedFiles, [uploadType]: event.target.files });
       setMessages({ ...messages, [uploadType]: '' });
       setErrors({ ...errors, [uploadType]: '' });
     }
@@ -27,7 +27,13 @@ export default function UploadPage() {
     setMessages({ ...messages, [uploadType]: 'ファイルをアップロード中です...' });
     setErrors({ ...errors, [uploadType]: '' });
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    if (uploadType === 'payment' && selectedFile) {
+      for (let i = 0; i < selectedFile.length; i++) {
+        formData.append('files', selectedFile[i]);
+      }
+    } else if (selectedFile) {
+      formData.append('file', selectedFile[0]);
+    }
 
     let url = '';
     switch (uploadType) {
@@ -71,7 +77,7 @@ export default function UploadPage() {
       <div className="card">
         <h2>決済レポートアップロード</h2>
         <p>Amazonペイメントレポート（TSV, CSV形式）をアップロードしてください。</p>
-        <input type="file" accept=".csv,.tsv,.txt" onChange={(e) => handleFileChange(e, 'payment')} />
+        <input type="file" accept=".csv,.tsv,.txt" onChange={(e) => handleFileChange(e, 'payment')} multiple />
         <button onClick={() => handleUpload('payment')} disabled={isLoading['payment']}>
           {isLoading['payment'] ? '処理中...' : 'アップロードして集計'}
         </button>

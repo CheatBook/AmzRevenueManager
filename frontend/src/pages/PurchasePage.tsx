@@ -231,34 +231,36 @@ export default function PurchasePage() {
 
       <div className="card">
         <h2>仕入れ一覧</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>仕入れ日</th>
-              <th>親SKU</th>
-              <th>数量</th>
-              <th>金額</th>
-              <th>関税</th>
-              <th>単価</th>
-              <th>編集</th>
-            </tr>
-          </thead>
-          <tbody>
-            {purchases.map((purchase) => (
-              <tr key={`${purchase.parentSku}-${purchase.purchaseDate}`}>
-                <td>{purchase.purchaseDate}</td>
-                <td>{getJapaneseName(purchase.parentSku)}</td>
-                <td>{formatNumber(purchase.quantity)}</td>
-                <td>{formatNumber(purchase.amount)}</td>
-                <td>{formatNumber(purchase.tariff)}</td>
-                <td>{formatNumber(purchase.unitPrice)}</td>
-                <td>
-                  <button onClick={() => handleEdit(purchase)}>編集</button>
-                </td>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>仕入れ日</th>
+                <th>親SKU</th>
+                <th>数量</th>
+                <th>金額</th>
+                <th>関税</th>
+                <th>単価</th>
+                <th>編集</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {purchases.map((purchase) => (
+                <tr key={`${purchase.parentSku}-${purchase.purchaseDate}`}>
+                  <td data-label="仕入れ日">{purchase.purchaseDate}</td>
+                  <td data-label="親SKU">{getJapaneseName(purchase.parentSku)}</td>
+                  <td data-label="数量">{formatNumber(purchase.quantity)}</td>
+                  <td data-label="金額">{formatNumber(purchase.amount)}</td>
+                  <td data-label="関税">{formatNumber(purchase.tariff)}</td>
+                  <td data-label="単価">{formatNumber(purchase.unitPrice)}</td>
+                  <td data-label="編集">
+                    <button onClick={() => handleEdit(purchase)}>編集</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
