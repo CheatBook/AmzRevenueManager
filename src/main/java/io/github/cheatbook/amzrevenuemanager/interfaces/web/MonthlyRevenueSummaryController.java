@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.github.cheatbook.amzrevenuemanager.domain.service.MonthlyRevenueSummaryService;
+import io.github.cheatbook.amzrevenuemanager.application.service.MonthlySummaryApplicationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
 import lombok.RequiredArgsConstructor;
 
@@ -15,10 +15,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MonthlyRevenueSummaryController {
 
-    private final MonthlyRevenueSummaryService monthlyRevenueSummaryService;
+    private final MonthlySummaryApplicationService monthlySummaryApplicationService;
 
     @GetMapping
     public List<ParentSkuMonthlySummaryDto> getMonthlyRevenueSummary() {
-        return monthlyRevenueSummaryService.getMonthlyRevenueSummary();
+        return monthlySummaryApplicationService.getMonthlyRevenueSummary();
     }
 }

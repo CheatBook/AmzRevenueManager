@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
-import io.github.cheatbook.amzrevenuemanager.domain.service.PurchaseService;
+import io.github.cheatbook.amzrevenuemanager.application.service.PurchaseApplicationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
 import lombok.RequiredArgsConstructor;
 
@@ -27,12 +27,12 @@ import lombok.RequiredArgsConstructor;
 @CrossOrigin(origins = "*")
 public class PurchaseController {
 
-    private final PurchaseService purchaseService;
+    private final PurchaseApplicationService purchaseApplicationService;
 
     @PostMapping
     public ResponseEntity<Purchase> savePurchase(@RequestBody PurchaseDto purchaseDto) {
         try {
-            Purchase savedPurchase = purchaseService.savePurchase(purchaseDto);
+            Purchase savedPurchase = purchaseApplicationService.savePurchase(purchaseDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,7 +43,7 @@ public class PurchaseController {
     @GetMapping
     public ResponseEntity<List<Purchase>> getAllPurchases() {
         try {
-            List<Purchase> purchases = purchaseService.getAllPurchases();
+            List<Purchase> purchases = purchaseApplicationService.getAllPurchases();
             return ResponseEntity.ok(purchases);
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,7 +57,7 @@ public class PurchaseController {
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
             @RequestBody PurchaseDto purchaseDto) {
         try {
-            Purchase updatedPurchase = purchaseService.updatePurchase(parentSku, purchaseDate, purchaseDto);
+            Purchase updatedPurchase = purchaseApplicationService.updatePurchase(parentSku, purchaseDate, purchaseDto);
             return ResponseEntity.ok(updatedPurchase);
         } catch (Exception e) {
             e.printStackTrace();

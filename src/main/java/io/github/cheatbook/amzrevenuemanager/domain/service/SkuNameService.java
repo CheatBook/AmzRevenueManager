@@ -19,7 +19,7 @@ public class SkuNameService {
     private final SkuNameRepository skuNameRepository;
     private final SettlementRepository settlementRepository;
 
-    public List<SkuName> findAllSkuNames() {
+    public List<SkuName> getAllSkuNames() {
         return skuNameRepository.findAll();
     }
 
@@ -50,5 +50,10 @@ public class SkuNameService {
         parentSku.setJapaneseName(japaneseName);
         parentSku.setParentSku(null); // 親SKUなのでnull
         return skuNameRepository.save(parentSku);
+    }
+
+    @Transactional
+    public void deleteSkuName(String sku) {
+        skuNameRepository.deleteById(sku);
     }
 }
