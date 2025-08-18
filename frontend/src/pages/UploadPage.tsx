@@ -27,7 +27,7 @@ export default function UploadPage() {
     setMessages({ ...messages, [uploadType]: 'ファイルをアップロード中です...' });
     setErrors({ ...errors, [uploadType]: '' });
     const formData = new FormData();
-    if (uploadType === 'payment' && selectedFile) {
+    if ((uploadType === 'payment' || uploadType === 'salesDate') && selectedFile) {
       for (let i = 0; i < selectedFile.length; i++) {
         formData.append('files', selectedFile[i]);
       }
@@ -113,8 +113,8 @@ export default function UploadPage() {
           <label htmlFor="salesDate-upload" className="file-upload-label">
             ファイルを選択
           </label>
-          <input id="salesDate-upload" type="file" accept=".txt" onChange={(e) => handleFileChange(e, 'salesDate')} />
-          <span className="file-name">{selectedFiles['salesDate'] ? selectedFiles['salesDate'][0].name : 'ファイルが選択されていません'}</span>
+          <input id="salesDate-upload" type="file" accept=".txt" onChange={(e) => handleFileChange(e, 'salesDate')} multiple />
+          <span className="file-name">{selectedFiles['salesDate'] ? `${selectedFiles['salesDate'].length} ファイル選択済み` : 'ファイルが選択されていません'}</span>
           <button onClick={() => handleUpload('salesDate')} disabled={isLoading['salesDate'] || !selectedFiles['salesDate']}>
             {isLoading['salesDate'] ? '処理中...' : 'アップロード'}
           </button>
