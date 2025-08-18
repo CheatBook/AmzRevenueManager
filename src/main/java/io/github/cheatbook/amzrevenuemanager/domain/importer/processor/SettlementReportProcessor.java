@@ -84,6 +84,7 @@ public class SettlementReportProcessor {
         settlement.setPostedDateTime(LocalDateTime.parse(csvRecord.get(ReportConstants.HEADER_POSTED_DATE_TIME), DateTimeFormats.SETTLEMENT_DATE_TIME_FORMAT));
         settlement.setSku(csvRecord.get(ReportConstants.HEADER_SKU));
         settlement.setQuantityPurchased(getQuantityPurchased(csvRecord));
+        settlement.setAmazonOrderId(csvRecord.get(ReportConstants.HEADER_AMAZON_ORDER_ID));
         return settlement;
     }
 

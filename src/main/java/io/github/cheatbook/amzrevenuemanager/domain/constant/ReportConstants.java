@@ -72,6 +72,11 @@ public final class ReportConstants {
     public static final String HEADER_ORDER_ID = "order-id";
 
     /**
+     * 決済レポートヘッダー: amazon-order-id
+     */
+    public static final String HEADER_AMAZON_ORDER_ID = "amazon-order-id";
+
+    /**
      * 決済レポートヘッダー: order-item-code
      */
     public static final String HEADER_ORDER_ITEM_CODE = "order-item-code";

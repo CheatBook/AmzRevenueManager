@@ -80,6 +80,15 @@ nav li a:hover::after {
 }
 
 
+nav li a.active {
+  color: var(--foreground);
+}
+
+nav li a.active::after {
+  width: 100%;
+}
+
+
 /* Main Content */
 main {
   flex-grow: 1;
@@ -357,6 +366,35 @@ tbody tr.parent-row:hover {
   gap: 1rem;
   align-items: center;
   margin-bottom: 1.5rem;
+}
+
+/* Upload Page */
+.upload-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.file-upload-label {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.file-upload-label:hover {
+  opacity: 0.9;
+}
+
+.upload-area input[type="file"] {
+  display: none;
+}
+
+.file-name {
+  color: var(--muted-foreground);
 }
 
 .parent-sku-form .form-group {

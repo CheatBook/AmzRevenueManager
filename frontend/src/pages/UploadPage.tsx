@@ -77,30 +77,48 @@ export default function UploadPage() {
       <div className="card">
         <h2>決済レポートアップロード</h2>
         <p>Amazonペイメントレポート（TSV, CSV形式）をアップロードしてください。</p>
-        <input type="file" accept=".csv,.tsv,.txt" onChange={(e) => handleFileChange(e, 'payment')} multiple />
-        <button onClick={() => handleUpload('payment')} disabled={isLoading['payment']}>
-          {isLoading['payment'] ? '処理中...' : 'アップロードして集計'}
-        </button>
+        <div className="upload-area">
+          <label htmlFor="payment-upload" className="file-upload-label">
+            ファイルを選択
+          </label>
+          <input id="payment-upload" type="file" accept=".csv,.tsv,.txt" onChange={(e) => handleFileChange(e, 'payment')} multiple />
+          <span className="file-name">{selectedFiles['payment'] ? `${selectedFiles['payment'].length} ファイル選択済み` : 'ファイルが選択されていません'}</span>
+          <button onClick={() => handleUpload('payment')} disabled={isLoading['payment'] || !selectedFiles['payment']}>
+            {isLoading['payment'] ? '処理中...' : 'アップロードして集計'}
+          </button>
+        </div>
         {messages['payment'] && <p style={{ color: 'green' }}>{messages['payment']}</p>}
         {errors['payment'] && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{errors['payment']}</p>}
       </div>
       <div className="card">
         <h2>広告レポートアップロード</h2>
         <p>スポンサープロダクト広告レポート（CSV形式）をアップロードしてください。</p>
-        <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, 'advertisement')} />
-        <button onClick={() => handleUpload('advertisement')} disabled={isLoading['advertisement']}>
-          {isLoading['advertisement'] ? '処理中...' : 'アップロード'}
-        </button>
+        <div className="upload-area">
+          <label htmlFor="advertisement-upload" className="file-upload-label">
+            ファイルを選択
+          </label>
+          <input id="advertisement-upload" type="file" accept=".csv" onChange={(e) => handleFileChange(e, 'advertisement')} />
+          <span className="file-name">{selectedFiles['advertisement'] ? selectedFiles['advertisement'][0].name : 'ファイルが選択されていません'}</span>
+          <button onClick={() => handleUpload('advertisement')} disabled={isLoading['advertisement'] || !selectedFiles['advertisement']}>
+            {isLoading['advertisement'] ? '処理中...' : 'アップロード'}
+          </button>
+        </div>
         {messages['advertisement'] && <p style={{ color: 'green' }}>{messages['advertisement']}</p>}
         {errors['advertisement'] && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{errors['advertisement']}</p>}
       </div>
       <div className="card">
         <h2>販売日管理レポートアップロード</h2>
         <p>販売日管理レポート（TXT形式）をアップロードしてください。</p>
-        <input type="file" accept=".txt" onChange={(e) => handleFileChange(e, 'salesDate')} />
-        <button onClick={() => handleUpload('salesDate')} disabled={isLoading['salesDate']}>
-          {isLoading['salesDate'] ? '処理中...' : 'アップロード'}
-        </button>
+        <div className="upload-area">
+          <label htmlFor="salesDate-upload" className="file-upload-label">
+            ファイルを選択
+          </label>
+          <input id="salesDate-upload" type="file" accept=".txt" onChange={(e) => handleFileChange(e, 'salesDate')} />
+          <span className="file-name">{selectedFiles['salesDate'] ? selectedFiles['salesDate'][0].name : 'ファイルが選択されていません'}</span>
+          <button onClick={() => handleUpload('salesDate')} disabled={isLoading['salesDate'] || !selectedFiles['salesDate']}>
+            {isLoading['salesDate'] ? '処理中...' : 'アップロード'}
+          </button>
+        </div>
         {messages['salesDate'] && <p style={{ color: 'green' }}>{messages['salesDate']}</p>}
         {errors['salesDate'] && <p style={{ color: 'red', border: '1px solid red', padding: '10px' }}>{errors['salesDate']}</p>}
       </div>

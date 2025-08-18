@@ -41,6 +41,12 @@ public class Settlement {
     private String orderId;
 
     /**
+     * Amazon注文ID
+     */
+    @Column(length = 50)
+    private String amazonOrderId;
+
+    /**
      * 注文商品コード
      */
     @Id

@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, NavLink } from 'react-router-dom';
 import UploadPage from './pages/UploadPage';
 import SkuNamePage from './pages/SkuNamePage'; // SkuNamePageをインポート
 import ParentSkuPage from './pages/ParentSkuPage'; // ParentSkuPageをインポート
@@ -14,19 +14,19 @@ function App() {
         <nav className="app-nav">
           <ul className="nav-list">
             <li className="nav-item">
-              <Link to="/" className="nav-link">レポートアップロード</Link>
+              <NavLink to="/" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>レポートアップロード</NavLink>
             </li>
            <li className="nav-item">
-             <Link to="/monthly-summary" className="nav-link">月別サマリー</Link>
+             <NavLink to="/monthly-summary" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>月別サマリー</NavLink>
            </li>
            <li className="nav-item">
-              <Link to="/sku-names" className="nav-link">SKU名管理</Link> {/* SKU名管理へのリンクを追加 */}
+              <NavLink to="/sku-names" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>SKU名管理</NavLink> {/* SKU名管理へのリンクを追加 */}
            </li>
             <li className="nav-item">
-              <Link to="/parent-sku-names" className="nav-link">親SKU登録</Link> {/* 親SKU登録へのリンクを追加 */}
+              <NavLink to="/parent-sku-names" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>親SKU登録</NavLink> {/* 親SKU登録へのリンクを追加 */}
             </li>
             <li className="nav-item">
-              <Link to="/purchase" className="nav-link">仕入れ登録</Link>
+              <NavLink to="/purchase" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>仕入れ登録</NavLink>
             </li>
           </ul>
         </nav>

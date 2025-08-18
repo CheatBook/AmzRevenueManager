@@ -2,10 +2,12 @@ package io.github.cheatbook.amzrevenuemanager.domain.service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
+import io.github.cheatbook.amzrevenuemanager.domain.entity.SalesDate;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.PurchaseRepository;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SalesDateRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.summary.SummaryAggregator;
@@ -16,6 +18,7 @@ import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthly
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +43,7 @@ public class MonthlyRevenueSummaryService {
     private final AdvertisementCostCalculator advertisementCostCalculator;
     private final ProductCostCalculator productCostCalculator;
     private final SummaryAggregator summaryAggregator;
+    private final SalesDateRepository salesDateRepository;
 
     /**
      * 月次収益サマリーを取得する。
@@ -52,6 +56,9 @@ public class MonthlyRevenueSummaryService {
         List<SkuName> skuNames = cacheableDataService.findAllSkuNames();
         List<Advertisement> allAdvertisements = advertisementRepository.findAll();
         List<Purchase> allPurchases = purchaseRepository.findAll();
+        List<SalesDate> allSalesDates = salesDateRepository.findAll();
+        Map<String, LocalDateTime> salesDateMap = allSalesDates.stream()
+                .collect(Collectors.toMap(SalesDate::getAmazonOrderId, SalesDate::getPurchaseDate, (existing, replacement) -> existing));
 
         // 親SKUごとの平均単価を計算
         Map<String, Double> averageUnitPriceByParentSku = allPurchases.stream()
@@ -61,7 +68,13 @@ public class MonthlyRevenueSummaryService {
 
         // 各データを月ごとにグループ化
         Map<YearMonth, List<Settlement>> settlementsByMonth = allSettlements.stream()
-                .collect(Collectors.groupingBy(s -> YearMonth.from(s.getPostedDateTime())));
+                .collect(Collectors.groupingBy(s -> {
+                    if (s.getAmazonOrderId() != null && salesDateMap.containsKey(s.getAmazonOrderId())) {
+                        return YearMonth.from(salesDateMap.get(s.getAmazonOrderId()));
+                    } else {
+                        return YearMonth.from(s.getPostedDateTime());
+                    }
+                }));
 
         Map<YearMonth, List<Advertisement>> advertisementsByMonth = allAdvertisements.stream()
                 .collect(Collectors.groupingBy(a -> YearMonth.from(a.getId().getDate())));
