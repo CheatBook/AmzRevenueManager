@@ -3,6 +3,7 @@ package io.github.cheatbook.amzrevenuemanager.application.service;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.AdvertisementImportService;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.SettlementImportService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
+import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,11 @@ public class ReportApplicationService {
     private final SettlementImportService settlementImportService;
 
     /**
+     * 売上日サービスクラス
+     */
+    private final SalesDateService salesDateService;
+
+    /**
      * 広告レポートをインポートする。
      *
      * @param file アップロードされた広告レポートファイル
@@ -48,5 +54,14 @@ public class ReportApplicationService {
      */
     public String importSettlementReport(MultipartFile file) throws IOException, DuplicateSettlementIdException {
         return settlementImportService.importReport(file);
+    }
+
+    /**
+     * 販売日管理レポートをインポートする。
+     *
+     * @param file アップロードされた販売日管理レポートファイル
+     */
+    public void importSalesDateReport(MultipartFile file) {
+        salesDateService.saveSalesDates(file);
     }
 }

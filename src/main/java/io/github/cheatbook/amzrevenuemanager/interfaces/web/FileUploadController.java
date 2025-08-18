@@ -93,4 +93,31 @@ public class FileUploadController {
                     .body("広告レポートの処理中にエラーが発生しました: " + e.getMessage());
         }
     }
+
+    /**
+     * 販売日管理レポートファイルをアップロードします。
+     *
+     * @param files アップロードされた販売日管理レポートファイルのリスト
+     * @return レスポンスエンティティ
+     */
+    @PostMapping("/upload-sales-date")
+    public ResponseEntity<String> handleSalesDateUpload(@RequestParam("files") List<MultipartFile> files) {
+        if (files.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+        }
+
+        StringBuilder responseMessageBuilder = new StringBuilder();
+
+        for (MultipartFile file : files) {
+            try {
+                reportApplicationService.importSalesDateReport(file);
+                responseMessageBuilder.append(file.getOriginalFilename()).append(" が正常に処理されました。\n");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
+            }
+        }
+        return ResponseEntity.ok(responseMessageBuilder.toString());
+    }
 }
