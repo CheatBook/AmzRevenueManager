@@ -9,9 +9,10 @@ import org.springframework.stereotype.Repository;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementId;
 import io.github.cheatbook.amzrevenuemanager.domain.summary.ParentSkuSummaryData;
-
-/**
- * 決済リポジトリです。
+import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.TransactionDataDto;
+ 
+ /**
+  * 決済リポジトリです。
  */
 @Repository
 public interface SettlementRepository extends JpaRepository<Settlement, SettlementId> {
@@ -63,4 +64,20 @@ public interface SettlementRepository extends JpaRepository<Settlement, Settleme
            "FROM Settlement s LEFT JOIN SkuName sn ON s.sku = sn.sku " +
            "GROUP BY COALESCE(sn.parentSku, s.sku)")
     List<ParentSkuSummaryData> findParentSkuSummaryData();
+
+   /**
+    * トランザクションデータを取得します。
+    *
+    * @return トランザクションデータのリスト
+    */
+   @Query("SELECT new io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.TransactionDataDto(" +
+          "s.settlementId, " +
+          "s.sku, " +
+          "s.amountDescription, " +
+          "s.quantityPurchased, " +
+          "sd.purchaseDate, " +
+          "s.postedDateTime, " +
+          "s.amount) " +
+          "FROM Settlement s LEFT JOIN SalesDate sd ON s.amazonOrderId = sd.amazonOrderId")
+   List<TransactionDataDto> findTransactionData();
 }

@@ -4,8 +4,9 @@ import SkuNamePage from './pages/SkuNamePage'; // SkuNamePageをインポート
 import ParentSkuPage from './pages/ParentSkuPage'; // ParentSkuPageをインポート
 import MonthlySummaryPage from './pages/MonthlySummaryPage';
 import PurchasePage from './pages/PurchasePage'; // PurchasePageをインポート
+import TransactionDataPage from './pages/TransactionDataPage';
 import './App.css';
-
+ 
 function App() {
   return (
     <div className="app-container">
@@ -28,6 +29,9 @@ function App() {
             <li className="nav-item">
               <NavLink to="/purchase" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>仕入れ登録</NavLink>
             </li>
+           <li className="nav-item">
+             <NavLink to="/transaction-data" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>トランザクションデータ一覧</NavLink>
+           </li>
           </ul>
         </nav>
       </header>
@@ -38,6 +42,7 @@ function App() {
           <Route path="/sku-names" element={<SkuNamePage />} /> {/* SKU名管理のルーティングを追加 */}
           <Route path="/parent-sku-names" element={<ParentSkuPage />} /> {/* 親SKU登録のルーティングを追加 */}
           <Route path="/purchase" element={<PurchasePage />} />
+         <Route path="/transaction-data" element={<TransactionDataPage />} />
         </Routes>
       </main>
     </div>

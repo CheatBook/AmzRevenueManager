@@ -2,14 +2,19 @@ package io.github.cheatbook.amzrevenuemanager.application.service;
 
 import io.github.cheatbook.amzrevenuemanager.domain.importer.AdvertisementImportService;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.SettlementImportService;
+import io.github.cheatbook.amzrevenuemanager.domain.importer.AdvertisementImportService;
+import io.github.cheatbook.amzrevenuemanager.domain.importer.SettlementImportService;
+import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SalesDateService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
+import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.TransactionDataDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+ 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * レポートに関するアプリケーションサービスクラス。
@@ -32,6 +37,11 @@ public class ReportApplicationService {
      * 売上日サービスクラス
      */
     private final SalesDateService salesDateService;
+
+   /**
+    * 決済リポジトリ
+    */
+    private final SettlementRepository settlementRepository;
 
     /**
      * 広告レポートをインポートする。
@@ -63,5 +73,14 @@ public class ReportApplicationService {
      */
     public void importSalesDateReport(MultipartFile file) {
         salesDateService.saveSalesDates(file);
+    }
+
+   /**
+    * トランザクションデータを取得する。
+    *
+    * @return トランザクションデータのリスト
+    */
+    public List<TransactionDataDto> getTransactionData() {
+        return settlementRepository.findTransactionData();
     }
 }
