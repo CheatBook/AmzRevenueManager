@@ -3,7 +3,7 @@
 Spring Boot 3 を使用したバックエンドアプリケーションです。
 
 ## 1. 技術スタック
-- **Java**: 21
+- **Java**: 17
 - **Framework**: Spring Boot 3.5.4
 - **Build Tool**: Maven
 - **Database**: MySQL (Connector/J), H2 (Development)
@@ -40,3 +40,7 @@ backend/
 ```bash
 ./mvnw spring-boot:run
 ```
+
+## 4. 設計詳細
+クラス単位の詳細設計については以下のドキュメントを参照してください。
+- [FileUploadController 詳細設計](./docs/detail/class-detail-FileUploadController.md)
