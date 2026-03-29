@@ -20,7 +20,21 @@
 - **データベース**: H2 Database (開発/検証用)
 - **ORM**: Spring Data JPA
 
-## 3. システム構成図
+## 3. ディレクトリ構造
+
+```text
+AmzRevenueManager-1/
+├── backend/             # Spring Boot, Java, Maven
+│   ├── src/
+│   ├── pom.xml
+│   └── ...
+├── frontend-react/      # React version
+├── frontend-vue/        # Vue version
+├── docs/                # Design documents
+└── .gitignore           # Global gitignore
+```
+
+## 4. システム構成図
 
 ```mermaid
 graph TD

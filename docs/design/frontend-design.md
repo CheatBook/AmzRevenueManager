@@ -6,20 +6,24 @@ Viteをビルドツールとして使用し、TypeScriptで型安全な開発を
 
 ## 2. ディレクトリ構造
 
+### 2.1 Vue フロントエンド (frontend-vue)
 ```text
 frontend-vue/
 ├── src/
 │   ├── assets/         # 静的資産（画像、グローバルCSS等）
-│   ├── components/     # 共通コンポーネント（現在は小規模のためpages直下が多い）
+│   ├── components/     # 共通コンポーネント
 │   ├── pages/          # 画面単位のコンポーネント
 │   ├── router/         # Vue Routerによるルーティング定義
 │   ├── types/          # TypeScriptの型定義
-│   ├── App.vue         # ルートコンポーネント（ヘッダー・ナビゲーション）
+│   ├── App.vue         # ルートコンポーネント
 │   ├── main.ts         # エントリーポイント
-│   └── style.css       # 共通スタイル・変数定義
+│   └── style.css       # 共通スタイル
 ├── index.html          # HTMLテンプレート
 └── vite.config.ts      # Vite/プロキシ設定
 ```
+
+### 2.2 React フロントエンド (frontend-react)
+既存の React 実装は `frontend-react` ディレクトリに保持されています。
 
 ## 3. 画面一覧とルーティング
 
