@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+interface TransactionData {
+  settlementId: string;
+  sku: string;
+  amountDescription: string;
+  quantityPurchased: number;
+  purchaseDate: string;
+  postedDateTime: string;
+  amount: number;
+}
+
+const transactionData = ref<TransactionData[]>([]);
+
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/transaction-data");
+    transactionData.value = response.data;
+  } catch (error) {
+    console.error("Error fetching transaction data:", error);
+  }
+});
+</script>
+
 <template>
   <div>
     <h1>トランザクションデータ一覧</h1>
@@ -29,29 +55,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
-import axios from "axios";
-
-interface TransactionData {
-  settlementId: string;
-  sku: string;
-  amountDescription: string;
-  quantityPurchased: number;
-  purchaseDate: string;
-  postedDateTime: string;
-  amount: number;
-}
-
-const transactionData = ref<TransactionData[]>([]);
-
-onMounted(async () => {
-  try {
-    const response = await axios.get("/api/transaction-data");
-    transactionData.value = response.data;
-  } catch (error) {
-    console.error("Error fetching transaction data:", error);
-  }
-});
-</script>

@@ -1,3 +1,74 @@
+<script setup lang="ts">
+import { ref, reactive } from "vue";
+import axios from "axios";
+
+const selectedFiles = reactive<{ [key: string]: FileList | null }>({});
+const messages = reactive<{ [key: string]: string }>({});
+const errors = reactive<{ [key: string]: string }>({});
+const isLoading = reactive<{ [key: string]: boolean }>({});
+
+const handleFileChange = (event: Event, uploadType: string) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files) {
+    selectedFiles[uploadType] = target.files;
+    messages[uploadType] = "";
+    errors[uploadType] = "";
+  }
+};
+
+const handleUpload = async (
+  uploadType: "payment" | "advertisement" | "salesDate",
+) => {
+  const selectedFile = selectedFiles[uploadType];
+  if (!selectedFile) {
+    errors[uploadType] = "ファイルが選択されていません。";
+    return;
+  }
+
+  isLoading[uploadType] = true;
+  messages[uploadType] = "ファイルをアップロード中です...";
+  errors[uploadType] = "";
+
+  const formData = new FormData();
+  if (
+    (uploadType === "payment" || uploadType === "salesDate") &&
+    selectedFile
+  ) {
+    for (let i = 0; i < selectedFile.length; i++) {
+      formData.append("files", selectedFile[i]);
+    }
+  } else if (selectedFile) {
+    formData.append("file", selectedFile[0]);
+  }
+
+  let url = "";
+  switch (uploadType) {
+    case "payment":
+      url = "/api/sales/upload";
+      break;
+    case "advertisement":
+      url = "/api/sales/upload-advertisement";
+      break;
+    case "salesDate":
+      url = "/api/sales/upload-sales-date";
+      break;
+  }
+
+  try {
+    const response = await axios.post(url, formData);
+    messages[uploadType] = response.data;
+    errors[uploadType] = "";
+  } catch (err: any) {
+    console.error("アップロードエラー:", err);
+    errors[uploadType] =
+      err.response?.data || "アップロード中にエラーが発生しました。";
+    messages[uploadType] = "";
+  } finally {
+    isLoading[uploadType] = false;
+  }
+};
+</script>
+
 <template>
   <div>
     <div class="card">
@@ -117,77 +188,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive } from "vue";
-import axios from "axios";
-
-const selectedFiles = reactive<{ [key: string]: FileList | null }>({});
-const messages = reactive<{ [key: string]: string }>({});
-const errors = reactive<{ [key: string]: string }>({});
-const isLoading = reactive<{ [key: string]: boolean }>({});
-
-const handleFileChange = (event: Event, uploadType: string) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files) {
-    selectedFiles[uploadType] = target.files;
-    messages[uploadType] = "";
-    errors[uploadType] = "";
-  }
-};
-
-const handleUpload = async (
-  uploadType: "payment" | "advertisement" | "salesDate",
-) => {
-  const selectedFile = selectedFiles[uploadType];
-  if (!selectedFile) {
-    errors[uploadType] = "ファイルが選択されていません。";
-    return;
-  }
-
-  isLoading[uploadType] = true;
-  messages[uploadType] = "ファイルをアップロード中です...";
-  errors[uploadType] = "";
-
-  const formData = new FormData();
-  if (
-    (uploadType === "payment" || uploadType === "salesDate") &&
-    selectedFile
-  ) {
-    for (let i = 0; i < selectedFile.length; i++) {
-      formData.append("files", selectedFile[i]);
-    }
-  } else if (selectedFile) {
-    formData.append("file", selectedFile[0]);
-  }
-
-  let url = "";
-  switch (uploadType) {
-    case "payment":
-      url = "/api/sales/upload";
-      break;
-    case "advertisement":
-      url = "/api/sales/upload-advertisement";
-      break;
-    case "salesDate":
-      url = "/api/sales/upload-sales-date";
-      break;
-  }
-
-  try {
-    const response = await axios.post(url, formData);
-    messages[uploadType] = response.data;
-    errors[uploadType] = "";
-  } catch (err: any) {
-    console.error("アップロードエラー:", err);
-    errors[uploadType] =
-      err.response?.data || "アップロード中にエラーが発生しました。";
-    messages[uploadType] = "";
-  } finally {
-    isLoading[uploadType] = false;
-  }
-};
-</script>
 
 <style scoped>
 .upload-area {

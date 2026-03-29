@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+interface ParentSkuRevenueForMonth {
+  parentSku: string;
+  parentSkuJapaneseName: string;
+  totalSales: number;
+  totalFees: number;
+  totalAdCost: number;
+  grossProfit: number;
+  orderCount: number;
+  productCost: number;
+}
+
+interface ParentSkuMonthlySummary {
+  year: number;
+  month: number;
+  parentSkuRevenues: ParentSkuRevenueForMonth[];
+  monthlyTotal: ParentSkuRevenueForMonth;
+}
+
+const summary = ref<ParentSkuMonthlySummary[]>([]);
+
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/monthly-summary");
+    summary.value = response.data;
+  } catch (error) {
+    console.error("Error fetching monthly summary:", error);
+  }
+});
+</script>
+
 <template>
   <div>
     <h1>月次親SKU別サマリー</h1>
@@ -79,37 +113,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
-import axios from "axios";
-
-interface ParentSkuRevenueForMonth {
-  parentSku: string;
-  parentSkuJapaneseName: string;
-  totalSales: number;
-  totalFees: number;
-  totalAdCost: number;
-  grossProfit: number;
-  orderCount: number;
-  productCost: number;
-}
-
-interface ParentSkuMonthlySummary {
-  year: number;
-  month: number;
-  parentSkuRevenues: ParentSkuRevenueForMonth[];
-  monthlyTotal: ParentSkuRevenueForMonth;
-}
-
-const summary = ref<ParentSkuMonthlySummary[]>([]);
-
-onMounted(async () => {
-  try {
-    const response = await axios.get("/api/monthly-summary");
-    summary.value = response.data;
-  } catch (error) {
-    console.error("Error fetching monthly summary:", error);
-  }
-});
-</script>

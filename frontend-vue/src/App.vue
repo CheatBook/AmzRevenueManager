@@ -1,3 +1,7 @@
+<script setup lang="ts">
+// App logic here if needed
+</script>
+
 <template>
   <div class="app-container">
     <header class="app-header">
@@ -51,10 +55,6 @@
     </main>
   </div>
 </template>
-
-<script setup lang="ts">
-// App logic here if needed
-</script>
 
 <style>
 /* Copy styles from App.css and index.css later */

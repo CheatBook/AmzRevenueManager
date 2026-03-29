@@ -1,3 +1,91 @@
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+interface SkuName {
+  sku: string;
+  japaneseName: string;
+  parentSku?: string;
+}
+
+const skuNames = ref<SkuName[]>([]);
+const selectedSku = ref("");
+const newJapaneseName = ref("");
+const parentSkus = ref<SkuName[]>([]);
+const distinctSkus = ref<string[]>([]);
+const selectedParentSku = ref("");
+const message = ref("");
+const isLoading = ref(false);
+
+const fetchParentSkus = async () => {
+  try {
+    const response = await axios.get("/api/sku-names/parent-skus");
+    parentSkus.value = response.data;
+  } catch (error) {
+    console.error("親SKU取得エラー:", error);
+  }
+};
+
+const fetchDistinctSkus = async () => {
+  try {
+    const response = await axios.get("/api/sku-names/distinct-skus");
+    distinctSkus.value = response.data;
+  } catch (error) {
+    console.error("ユニークなSKU取得エラー:", error);
+  }
+};
+
+const fetchSkuNames = async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get("/api/sku-names");
+    skuNames.value = response.data;
+    message.value = "";
+  } catch (error) {
+    console.error("SKU名取得エラー:", error);
+    message.value = "SKU名の取得に失敗しました。";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const handleSubmit = async () => {
+  if (!selectedSku.value || !newJapaneseName.value) {
+    message.value = "SKUと日本語名の両方を入力してください。";
+    return;
+  }
+
+  isLoading.value = true;
+  message.value = "SKU名を保存中です...";
+  try {
+    const response = await axios.post("/api/sku-names", {
+      sku: selectedSku.value,
+      japaneseName: newJapaneseName.value,
+      parentSku: selectedParentSku.value || null,
+    });
+
+    if (response.status === 200 || response.status === 201) {
+      message.value = "SKU名が正常に保存されました。";
+      selectedSku.value = "";
+      newJapaneseName.value = "";
+      selectedParentSku.value = "";
+      fetchSkuNames();
+    }
+  } catch (error: any) {
+    console.error("保存エラー:", error);
+    message.value = `保存失敗: ${error.response?.statusText || "エラーが発生しました"}`;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchSkuNames();
+  fetchParentSkus();
+  fetchDistinctSkus();
+});
+</script>
+
 <template>
   <div class="card">
     <h2>SKU名管理</h2>
@@ -88,94 +176,6 @@
     <p v-else>登録されているSKU名はありません。</p>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
-import axios from "axios";
-
-interface SkuName {
-  sku: string;
-  japaneseName: string;
-  parentSku?: string;
-}
-
-const skuNames = ref<SkuName[]>([]);
-const selectedSku = ref("");
-const newJapaneseName = ref("");
-const parentSkus = ref<SkuName[]>([]);
-const distinctSkus = ref<string[]>([]);
-const selectedParentSku = ref("");
-const message = ref("");
-const isLoading = ref(false);
-
-const fetchParentSkus = async () => {
-  try {
-    const response = await axios.get("/api/sku-names/parent-skus");
-    parentSkus.value = response.data;
-  } catch (error) {
-    console.error("親SKU取得エラー:", error);
-  }
-};
-
-const fetchDistinctSkus = async () => {
-  try {
-    const response = await axios.get("/api/sku-names/distinct-skus");
-    distinctSkus.value = response.data;
-  } catch (error) {
-    console.error("ユニークなSKU取得エラー:", error);
-  }
-};
-
-const fetchSkuNames = async () => {
-  isLoading.value = true;
-  try {
-    const response = await axios.get("/api/sku-names");
-    skuNames.value = response.data;
-    message.value = "";
-  } catch (error) {
-    console.error("SKU名取得エラー:", error);
-    message.value = "SKU名の取得に失敗しました。";
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const handleSubmit = async () => {
-  if (!selectedSku.value || !newJapaneseName.value) {
-    message.value = "SKUと日本語名の両方を入力してください。";
-    return;
-  }
-
-  isLoading.value = true;
-  message.value = "SKU名を保存中です...";
-  try {
-    const response = await axios.post("/api/sku-names", {
-      sku: selectedSku.value,
-      japaneseName: newJapaneseName.value,
-      parentSku: selectedParentSku.value || null,
-    });
-
-    if (response.status === 200 || response.status === 201) {
-      message.value = "SKU名が正常に保存されました。";
-      selectedSku.value = "";
-      newJapaneseName.value = "";
-      selectedParentSku.value = "";
-      fetchSkuNames();
-    }
-  } catch (error: any) {
-    console.error("保存エラー:", error);
-    message.value = `保存失敗: ${error.response?.statusText || "エラーが発生しました"}`;
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchSkuNames();
-  fetchParentSkus();
-  fetchDistinctSkus();
-});
-</script>
 
 <style scoped>
 .sku-name-form .form-row {

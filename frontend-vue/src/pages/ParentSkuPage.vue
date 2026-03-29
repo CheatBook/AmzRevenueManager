@@ -1,51 +1,3 @@
-<template>
-  <div>
-    <div class="card">
-      <h2>親SKU登録</h2>
-      <form @submit.prevent="handleSubmit" class="parent-sku-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="japaneseName">日本語名:</label>
-            <input
-              type="text"
-              id="japaneseName"
-              v-model="newJapaneseName"
-              :disabled="isLoading"
-            />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" :disabled="isLoading">
-            {{ isLoading ? "保存中..." : "親SKU名を保存" }}
-          </button>
-        </div>
-      </form>
-      <p v-if="message">{{ message }}</p>
-    </div>
-    <h3 style="margin-top: 20px">登録済み親SKU一覧</h3>
-    <div v-if="parentSkus.length > 0" class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>日本語名</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(item, index) in parentSkus"
-            :key="item.sku || `parent-sku-${index}`"
-          >
-            <td data-label="SKU">{{ item.sku }}</td>
-            <td data-label="日本語名">{{ item.japaneseName }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p v-else>登録されている親SKU名はありません。</p>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
@@ -99,3 +51,51 @@ onMounted(() => {
   fetchParentSkus();
 });
 </script>
+
+<template>
+  <div>
+    <div class="card">
+      <h2>親SKU登録</h2>
+      <form @submit.prevent="handleSubmit" class="parent-sku-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="japaneseName">日本語名:</label>
+            <input
+              type="text"
+              id="japaneseName"
+              v-model="newJapaneseName"
+              :disabled="isLoading"
+            />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" :disabled="isLoading">
+            {{ isLoading ? "保存中..." : "親SKU名を保存" }}
+          </button>
+        </div>
+      </form>
+      <p v-if="message">{{ message }}</p>
+    </div>
+    <h3 style="margin-top: 20px">登録済み親SKU一覧</h3>
+    <div v-if="parentSkus.length > 0" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>日本語名</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(item, index) in parentSkus"
+            :key="item.sku || `parent-sku-${index}`"
+          >
+            <td data-label="SKU">{{ item.sku }}</td>
+            <td data-label="日本語名">{{ item.japaneseName }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p v-else>登録されている親SKU名はありません。</p>
+  </div>
+</template>
