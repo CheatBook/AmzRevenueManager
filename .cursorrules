@@ -5,7 +5,14 @@
   - Good: `### Heading\n\nContent`
 - MD031: MANDATORY. Fenced code blocks (```) MUST be surrounded by blank lines. Always ensure there is a blank line before and after code blocks.
 - MD032: MANDATORY. Lists MUST be surrounded by blank lines.
-- MD030: MANDATORY. Spaces after list markers. Always ensure there is EXACTLY one space after list markers (e.g., `- `, `1. `).
+- MD030: MANDATORY. Spaces after list markers. Always ensure there is EXACTLY one space after list markers.
+  - Bad: `1.  Numbered list` (two spaces)
+  - Good: `1. Numbered list` (one space)
+  - Bad: `-  Bullet list` (two spaces)
+  - Good: `- Bullet list` (one space)
+- MD038: MANDATORY. No spaces inside code spans. Code spans MUST NOT start or end with a space.
+  - Bad: `` ` code ` ``
+  - Good: `` `code` ``
 
 # Project Context
 
@@ -21,3 +28,13 @@
 - Follow the existing package structure and naming conventions.
 - Ensure all messages and labels are externalized to `messages.properties` for i18n support.
 - When creating documentation (MD files), always include links to the corresponding Java implementation files and related design documents.
+- Documentation Directory Structure (Backend):
+  - API (Grouped by Controller): `backend/docs/api/{ControllerName}/`
+    - Class Detail: `class-detail.md`
+    - Endpoint Detail: `api-{EndpointName}.md`
+  - Application Services: `backend/docs/application/services/{FunctionalGroup}/`
+  - Domain Services: `backend/docs/domain/services/{FunctionalGroup}/`
+  - Repositories: `backend/docs/infrastructure/repositories/{FunctionalGroup}/`
+- Documentation Directory Structure (Frontend):
+  - Pages: `frontend-vue/docs/pages/`
+  - Router: `frontend-vue/docs/router/`
