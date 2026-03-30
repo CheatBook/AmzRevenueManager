@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.application.service.PurchaseApplicationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,11 @@ public class PurchaseController {
     private final PurchaseApplicationService purchaseApplicationService;
 
     /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
+
+    /**
      * 仕入れ情報を保存します。
      *
      * @param purchaseDto 仕入れ情報DTO
@@ -49,7 +55,7 @@ public class PurchaseController {
             Purchase savedPurchase = purchaseApplicationService.savePurchase(purchaseDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
         } catch (Exception e) {
-            log.error("仕入れ情報の保存中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("purchase.save.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -65,7 +71,7 @@ public class PurchaseController {
             List<Purchase> purchases = purchaseApplicationService.getAllPurchases();
             return ResponseEntity.ok(purchases);
         } catch (Exception e) {
-            log.error("すべての仕入れ情報の取得中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("purchase.get_all.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -87,7 +93,7 @@ public class PurchaseController {
             Purchase updatedPurchase = purchaseApplicationService.updatePurchase(parentSku, purchaseDate, purchaseDto);
             return ResponseEntity.ok(updatedPurchase);
         } catch (Exception e) {
-            log.error("仕入れ情報の更新中にエラーが発生しました: parentSku={}, purchaseDate={}", parentSku, purchaseDate, e);
+            log.error(messageLocalizationService.getMessage("purchase.update.error", new Object[]{parentSku, purchaseDate}), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

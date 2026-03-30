@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.application.service.ReportApplicationService;
 import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
@@ -36,6 +37,11 @@ public class FileUploadController {
     private final ReportApplicationService reportApplicationService;
 
     /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
+
+    /**
      * 決済レポートファイルをアップロードします。
      *
      * @param files アップロードされた決済レポートファイルのリスト
@@ -44,7 +50,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("files") List<MultipartFile> files) {
         if (files.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
         }
 
         StringBuilder responseMessageBuilder = new StringBuilder();
@@ -56,18 +62,18 @@ public class FileUploadController {
                 if (warningMessage != null) {
                     warningMessageBuilder.append(file.getOriginalFilename()).append(": ").append(warningMessage).append("\n");
                 }
-                responseMessageBuilder.append(file.getOriginalFilename()).append(" が正常に処理されました。\n");
+                responseMessageBuilder.append(messageLocalizationService.getMessage("upload.success", new Object[]{file.getOriginalFilename()})).append("\n");
             } catch (DuplicateSettlementIdException e) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
             } catch (Exception e) {
-                log.error("決済レポートの処理中にエラーが発生しました: {}", file.getOriginalFilename(), e);
+                log.error(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), ""}), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
+                        .body(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}));
             }
         }
 
         if (!warningMessageBuilder.isEmpty()) {
-            responseMessageBuilder.append("\n警告:\n").append(warningMessageBuilder);
+            responseMessageBuilder.append("\n").append(messageLocalizationService.getMessage("upload.warning")).append("\n").append(warningMessageBuilder);
         }
 
         return ResponseEntity.ok(responseMessageBuilder.toString());
@@ -82,17 +88,17 @@ public class FileUploadController {
     @PostMapping("/upload-advertisement")
     public ResponseEntity<String> handleAdvertisementUpload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
         }
         try {
             reportApplicationService.importAdvertisementReport(file);
-            return ResponseEntity.ok("広告レポートが正常にアップロードされ、処理されました。");
+            return ResponseEntity.ok(messageLocalizationService.getMessage("upload.advertisement.success"));
         } catch (SkuNameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            log.error("広告レポートの処理中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{""}), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("広告レポートの処理中にエラーが発生しました: " + e.getMessage());
+                    .body(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{e.getMessage()}));
         }
     }
 
@@ -105,7 +111,7 @@ public class FileUploadController {
     @PostMapping("/upload-sales-date")
     public ResponseEntity<String> handleSalesDateUpload(@RequestParam("files") List<MultipartFile> files) {
         if (files.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ファイルが空です。");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
         }
 
         StringBuilder responseMessageBuilder = new StringBuilder();
@@ -113,11 +119,11 @@ public class FileUploadController {
         for (MultipartFile file : files) {
             try {
                 reportApplicationService.importSalesDateReport(file);
-                responseMessageBuilder.append(file.getOriginalFilename()).append(" が正常に処理されました。\n");
+                responseMessageBuilder.append(messageLocalizationService.getMessage("upload.success", new Object[]{file.getOriginalFilename()})).append("\n");
             } catch (Exception e) {
-                log.error("販売日管理レポートの処理中にエラーが発生しました: {}", file.getOriginalFilename(), e);
+                log.error(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), ""}), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
+                        .body(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}));
             }
         }
         return ResponseEntity.ok(responseMessageBuilder.toString());

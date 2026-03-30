@@ -5,6 +5,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.constant.ReportConstants;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementId;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SettlementReport;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.processor.SettlementReportProcessor;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.reader.SettlementReportReader;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
@@ -48,6 +49,11 @@ public class SettlementImportService {
     private final SettlementReportProcessor processor;
 
     /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
+
+    /**
      * 決済レポートをインポートします。
      *
      * @param file アップロードされた決済レポートファイル
@@ -66,7 +72,7 @@ public class SettlementImportService {
             CSVRecord summaryRecord = csvIterator.next();
             String settlementIdStr = summaryRecord.get(ReportConstants.HEADER_SETTLEMENT_ID);
             if (settlementRepository.existsBySettlementId(settlementIdStr)) {
-                throw new DuplicateSettlementIdException("Settlement ID " + settlementIdStr + " は既に存在します。");
+                throw new DuplicateSettlementIdException(messageLocalizationService.getMessage("exception.duplicate_settlement_id", new Object[]{settlementIdStr}));
             }
 
             saveSettlementReport(summaryRecord);
@@ -123,8 +129,8 @@ public class SettlementImportService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (totalAmountFromFile.compareTo(calculatedTotalAmount) != 0) {
-            return String.format("警告: ファイルの合計金額(%s)と計算された合計金額(%s)が一致しません。",
-                    totalAmountFromFile.toPlainString(), calculatedTotalAmount.toPlainString());
+            return messageLocalizationService.getMessage("exception.total_mismatch",
+                    new Object[]{totalAmountFromFile.toPlainString(), calculatedTotalAmount.toPlainString()});
         }
         return null;
     }

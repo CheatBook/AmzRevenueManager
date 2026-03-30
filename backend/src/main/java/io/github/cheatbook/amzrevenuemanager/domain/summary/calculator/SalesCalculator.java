@@ -5,7 +5,9 @@ import io.github.cheatbook.amzrevenuemanager.domain.constant.Miscellaneous;
 import io.github.cheatbook.amzrevenuemanager.domain.constant.TransactionType;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Settlement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,7 +21,13 @@ import java.util.stream.Collectors;
  * 売上を計算するクラスです。
  */
 @Component
+@RequiredArgsConstructor
 public class SalesCalculator {
+
+    /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
 
     /**
      * 売上を計算し、親SKUごとのサマリーマップを返します。
@@ -97,12 +105,13 @@ public class SalesCalculator {
      * @return 空のサマリーオブジェクト
      */
     private ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto createEmptySummary(String parentSku, Map<String, String> parentSkuToJapaneseNameMap) {
+        String otherLabel = messageLocalizationService.getMessage("misc.other");
         String japaneseName = Miscellaneous.OTHER_TRANSACTION_PARENT_SKU.equals(parentSku)
-                ? Miscellaneous.OTHER_TRANSACTION_PARENT_SKU
+                ? otherLabel
                 : parentSkuToJapaneseNameMap.getOrDefault(parentSku, parentSku);
 
         return ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto.builder()
-                .parentSku(parentSku)
+                .parentSku(Miscellaneous.OTHER_TRANSACTION_PARENT_SKU.equals(parentSku) ? otherLabel : parentSku)
                 .parentSkuJapaneseName(japaneseName)
                 .totalSales(BigDecimal.ZERO)
                 .totalFees(BigDecimal.ZERO)

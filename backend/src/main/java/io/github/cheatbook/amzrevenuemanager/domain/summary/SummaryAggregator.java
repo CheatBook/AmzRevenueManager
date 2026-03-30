@@ -1,7 +1,8 @@
 package io.github.cheatbook.amzrevenuemanager.domain.summary;
 
-import io.github.cheatbook.amzrevenuemanager.domain.constant.Miscellaneous;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.ParentSkuMonthlySummaryDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -12,7 +13,13 @@ import java.util.Map;
  * サマリーを集計するクラスです。
  */
 @Component
+@RequiredArgsConstructor
 public class SummaryAggregator {
+
+    /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
 
     /**
      * 親SKUごとのサマリーマップを集計し、月次合計を計算します。
@@ -43,9 +50,10 @@ public class SummaryAggregator {
      * @return 空の月次合計オブジェクト
      */
     private ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto createEmptyMonthlyTotal() {
+        String totalLabel = messageLocalizationService.getMessage("misc.total");
         return ParentSkuMonthlySummaryDto.ParentSkuRevenueForMonthDto.builder()
-                .parentSku(Miscellaneous.TOTAL)
-                .parentSkuJapaneseName(Miscellaneous.TOTAL)
+                .parentSku(totalLabel)
+                .parentSkuJapaneseName(totalLabel)
                 .totalSales(BigDecimal.ZERO)
                 .totalFees(BigDecimal.ZERO)
                 .totalAdCost(BigDecimal.ZERO)

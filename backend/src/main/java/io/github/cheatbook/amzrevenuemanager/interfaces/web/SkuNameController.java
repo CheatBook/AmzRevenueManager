@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.application.service.SkuNameApplicationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,11 @@ public class SkuNameController {
     private final SkuNameApplicationService skuNameApplicationService;
 
     /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
+
+    /**
      * すべてのSKU名を取得します。
      *
      * @return レスポンスエンティティ
@@ -42,7 +48,7 @@ public class SkuNameController {
             List<SkuName> skuNames = skuNameApplicationService.getAllSkuNames();
             return ResponseEntity.ok(skuNames);
         } catch (Exception e) {
-            log.error("すべてのSKU名の取得中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("skuname.get_all.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -58,7 +64,7 @@ public class SkuNameController {
             List<String> distinctSkus = skuNameApplicationService.findDistinctSkusFromSettlements();
             return ResponseEntity.ok(distinctSkus);
         } catch (Exception e) {
-            log.error("重複しないSKUリストの取得中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("skuname.get_distinct.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -75,7 +81,7 @@ public class SkuNameController {
             SkuName savedSkuName = skuNameApplicationService.saveSkuName(skuName);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedSkuName);
         } catch (Exception e) {
-            log.error("SKU名の保存中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("skuname.save.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -95,7 +101,7 @@ public class SkuNameController {
             SkuName createdParentSku = skuNameApplicationService.saveSkuName(parentSku);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdParentSku);
         } catch (Exception e) {
-            log.error("親SKU名の作成中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("skuname.create_parent.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -111,7 +117,7 @@ public class SkuNameController {
             List<SkuName> parentSkus = skuNameApplicationService.findParentSkus();
             return ResponseEntity.ok(parentSkus);
         } catch (Exception e) {
-            log.error("親SKUリストの取得中にエラーが発生しました", e);
+            log.error(messageLocalizationService.getMessage("skuname.get_parents.error"), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

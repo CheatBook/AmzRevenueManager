@@ -8,10 +8,12 @@ import io.github.cheatbook.amzrevenuemanager.domain.constant.ReportConstants;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.AdvertisementId;
 import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
+import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AdvertisementReportProcessor {
 
     /**
@@ -37,6 +40,11 @@ public class AdvertisementReportProcessor {
      * 広告リポジトリ
      */
     private final AdvertisementRepository advertisementRepository;
+
+    /**
+     * メッセージローカライズサービス
+     */
+    private final MessageLocalizationService messageLocalizationService;
 
     /**
      * CSVレコードを処理し、広告マップを更新します。
@@ -58,7 +66,7 @@ public class AdvertisementReportProcessor {
         try {
             date = LocalDate.parse(dateStr, DateTimeFormats.ADVERTISEMENT_DATE_FORMAT);
         } catch (DateTimeParseException e) {
-            // TODO: エラーログを記録する
+            log.error(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{e.getMessage()}));
             return;
         }
 
@@ -89,7 +97,7 @@ public class AdvertisementReportProcessor {
                 }
             }
         } else {
-            throw new SkuNameNotFoundException("キャンペーン名に紐づくSKUが見つかりません: " + campaignName);
+            throw new SkuNameNotFoundException(messageLocalizationService.getMessage("exception.sku_name_not_found", new Object[]{campaignName}));
         }
     }
 }
