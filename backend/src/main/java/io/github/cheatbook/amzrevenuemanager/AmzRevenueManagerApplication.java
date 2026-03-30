@@ -17,7 +17,7 @@ import org.springframework.cache.annotation.EnableCaching;
  */
 @SpringBootApplication
 @EnableCaching
-public class AmzrevenuemanagerApplication {
+public class AmzRevenueManagerApplication {
 
 	/**
 	 * アプリケーションを起動するメインメソッドです。
@@ -26,7 +26,7 @@ public class AmzrevenuemanagerApplication {
 	 */
 	public static void main(String[] args) {
 		// Spring Bootアプリケーションを起動します。
-		SpringApplication.run(AmzrevenuemanagerApplication.class, args);
+		SpringApplication.run(AmzRevenueManagerApplication.class, args);
 	}
 
 }
