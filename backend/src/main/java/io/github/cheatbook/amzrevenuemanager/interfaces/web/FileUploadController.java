@@ -18,6 +18,7 @@ import io.github.cheatbook.amzrevenuemanager.application.service.ReportApplicati
 import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * ファイルアップロードに関するコントローラークラスです。
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/sales")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "*") // 開発のため全オリジンを許可。本番では特定のオリジンに限定すべき
 public class FileUploadController {
 
@@ -58,13 +60,13 @@ public class FileUploadController {
             } catch (DuplicateSettlementIdException e) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("決済レポートの処理中にエラーが発生しました: {}", file.getOriginalFilename(), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
             }
         }
 
-        if (warningMessageBuilder.length() > 0) {
+        if (!warningMessageBuilder.isEmpty()) {
             responseMessageBuilder.append("\n警告:\n").append(warningMessageBuilder);
         }
 
@@ -88,7 +90,7 @@ public class FileUploadController {
         } catch (SkuNameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("広告レポートの処理中にエラーが発生しました", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("広告レポートの処理中にエラーが発生しました: " + e.getMessage());
         }
@@ -113,7 +115,7 @@ public class FileUploadController {
                 reportApplicationService.importSalesDateReport(file);
                 responseMessageBuilder.append(file.getOriginalFilename()).append(" が正常に処理されました。\n");
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("販売日管理レポートの処理中にエラーが発生しました: {}", file.getOriginalFilename(), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(file.getOriginalFilename() + " の処理中にエラーが発生しました: " + e.getMessage());
             }

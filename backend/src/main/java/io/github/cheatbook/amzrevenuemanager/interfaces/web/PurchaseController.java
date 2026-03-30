@@ -20,6 +20,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.entity.Purchase;
 import io.github.cheatbook.amzrevenuemanager.application.service.PurchaseApplicationService;
 import io.github.cheatbook.amzrevenuemanager.interfaces.web.dto.PurchaseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 仕入れに関するコントローラークラスです。
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/purchases")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "*")
 public class PurchaseController {
 
@@ -47,7 +49,7 @@ public class PurchaseController {
             Purchase savedPurchase = purchaseApplicationService.savePurchase(purchaseDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("仕入れ情報の保存中にエラーが発生しました", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -63,7 +65,7 @@ public class PurchaseController {
             List<Purchase> purchases = purchaseApplicationService.getAllPurchases();
             return ResponseEntity.ok(purchases);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("すべての仕入れ情報の取得中にエラーが発生しました", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -85,7 +87,7 @@ public class PurchaseController {
             Purchase updatedPurchase = purchaseApplicationService.updatePurchase(parentSku, purchaseDate, purchaseDto);
             return ResponseEntity.ok(updatedPurchase);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("仕入れ情報の更新中にエラーが発生しました: parentSku={}, purchaseDate={}", parentSku, purchaseDate, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
