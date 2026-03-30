@@ -1,0 +1,23 @@
+# Markdown Coding Standards (CRITICAL: STRICT ENFORCEMENT)
+
+- MD022: MANDATORY. Every heading (#, ##, ###) MUST have EXACTLY one blank line before it and EXACTLY one blank line after it.
+  - Bad: `### Heading\nContent`
+  - Good: `### Heading\n\nContent`
+- MD031: MANDATORY. Fenced code blocks (```) MUST be surrounded by blank lines. Always ensure there is a blank line before and after code blocks.
+- MD032: MANDATORY. Lists MUST be surrounded by blank lines.
+- MD030: MANDATORY. Spaces after list markers. Always ensure there is EXACTLY one space after list markers (e.g., `- `, `1. `).
+
+# Project Context
+
+- This project is a Web system for managing Amazon revenue.
+- Backend: Spring Boot 3 + Java 17
+- Frontend: Vue 3 + Vite + TypeScript
+- Database: MySQL (Docker)
+- Internationalization (i18n): Supported (Default: Japanese)
+
+# Coding Guidelines
+
+- Use SLF4J (@Slf4j) for logging instead of `printStackTrace()`.
+- Follow the existing package structure and naming conventions.
+- Ensure all messages and labels are externalized to `messages.properties` for i18n support.
+- When creating documentation (MD files), always include links to the corresponding Java implementation files and related design documents.
