@@ -51,13 +51,8 @@ public class PurchaseController {
      */
     @PostMapping
     public ResponseEntity<Purchase> savePurchase(@RequestBody PurchaseDto purchaseDto) {
-        try {
-            Purchase savedPurchase = purchaseApplicationService.savePurchase(purchaseDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("purchase.save.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        Purchase savedPurchase = purchaseApplicationService.savePurchase(purchaseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedPurchase);
     }
 
     /**
@@ -67,13 +62,8 @@ public class PurchaseController {
      */
     @GetMapping
     public ResponseEntity<List<Purchase>> getAllPurchases() {
-        try {
-            List<Purchase> purchases = purchaseApplicationService.getAllPurchases();
-            return ResponseEntity.ok(purchases);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("purchase.get_all.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<Purchase> purchases = purchaseApplicationService.getAllPurchases();
+        return ResponseEntity.ok(purchases);
     }
 
     /**
@@ -89,12 +79,7 @@ public class PurchaseController {
             @PathVariable String parentSku,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate purchaseDate,
             @RequestBody PurchaseDto purchaseDto) {
-        try {
-            Purchase updatedPurchase = purchaseApplicationService.updatePurchase(parentSku, purchaseDate, purchaseDto);
-            return ResponseEntity.ok(updatedPurchase);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("purchase.update.error", new Object[]{parentSku, purchaseDate}), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        Purchase updatedPurchase = purchaseApplicationService.updatePurchase(parentSku, purchaseDate, purchaseDto);
+        return ResponseEntity.ok(updatedPurchase);
     }
 }

@@ -44,13 +44,8 @@ public class SkuNameController {
      */
     @GetMapping
     public ResponseEntity<List<SkuName>> getAllSkuNames() {
-        try {
-            List<SkuName> skuNames = skuNameApplicationService.getAllSkuNames();
-            return ResponseEntity.ok(skuNames);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("skuname.get_all.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<SkuName> skuNames = skuNameApplicationService.getAllSkuNames();
+        return ResponseEntity.ok(skuNames);
     }
 
     /**
@@ -60,13 +55,8 @@ public class SkuNameController {
      */
     @GetMapping("/distinct-skus")
     public ResponseEntity<List<String>> getDistinctSkusFromSettlements() {
-        try {
-            List<String> distinctSkus = skuNameApplicationService.findDistinctSkusFromSettlements();
-            return ResponseEntity.ok(distinctSkus);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("skuname.get_distinct.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<String> distinctSkus = skuNameApplicationService.findDistinctSkusFromSettlements();
+        return ResponseEntity.ok(distinctSkus);
     }
 
     /**
@@ -77,13 +67,8 @@ public class SkuNameController {
      */
     @PostMapping
     public ResponseEntity<SkuName> saveSkuName(@RequestBody SkuName skuName) {
-        try {
-            SkuName savedSkuName = skuNameApplicationService.saveSkuName(skuName);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedSkuName);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("skuname.save.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        SkuName savedSkuName = skuNameApplicationService.saveSkuName(skuName);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedSkuName);
     }
 
     /**
@@ -94,16 +79,11 @@ public class SkuNameController {
      */
     @PostMapping("/parent-sku")
     public ResponseEntity<SkuName> createParentSkuName(@RequestBody SkuName parentSkuRequest) {
-        try {
-            // このロジックはアプリケーションサービスで処理されるべきです
-            SkuName parentSku = new SkuName();
-            parentSku.setJapaneseName(parentSkuRequest.getJapaneseName());
-            SkuName createdParentSku = skuNameApplicationService.saveSkuName(parentSku);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdParentSku);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("skuname.create_parent.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        // このロジックはアプリケーションサービスで処理されるべきです
+        SkuName parentSku = new SkuName();
+        parentSku.setJapaneseName(parentSkuRequest.getJapaneseName());
+        SkuName createdParentSku = skuNameApplicationService.saveSkuName(parentSku);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdParentSku);
     }
 
     /**
@@ -113,12 +93,7 @@ public class SkuNameController {
      */
     @GetMapping("/parent-skus")
     public ResponseEntity<List<SkuName>> getParentSkus() {
-        try {
-            List<SkuName> parentSkus = skuNameApplicationService.findParentSkus();
-            return ResponseEntity.ok(parentSkus);
-        } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("skuname.get_parents.error"), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<SkuName> parentSkus = skuNameApplicationService.findParentSkus();
+        return ResponseEntity.ok(parentSkus);
     }
 }

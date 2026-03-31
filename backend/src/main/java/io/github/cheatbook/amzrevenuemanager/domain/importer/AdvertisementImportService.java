@@ -7,7 +7,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.entity.Advertisement;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.processor.AdvertisementReportProcessor;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.reader.AdvertisementReportReader;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;

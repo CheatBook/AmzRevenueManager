@@ -11,7 +11,7 @@ import io.github.cheatbook.amzrevenuemanager.domain.entity.SkuName;
 import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.AdvertisementRepository;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SkuNameRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVRecord;

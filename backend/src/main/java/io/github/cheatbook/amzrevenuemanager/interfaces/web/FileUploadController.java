@@ -16,8 +16,9 @@ import java.util.List;
 
 import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocalizationService;
 import io.github.cheatbook.amzrevenuemanager.application.service.ReportApplicationService;
-import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
-import io.github.cheatbook.amzrevenuemanager.domain.service.SkuNameNotFoundException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.BusinessException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.DuplicateSettlementIdException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.SkuNameNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +51,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("files") List<MultipartFile> files) {
         if (files.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
+            throw new BusinessException(messageLocalizationService.getMessage("error.file_empty"), HttpStatus.BAD_REQUEST);
         }
 
         StringBuilder responseMessageBuilder = new StringBuilder();
@@ -64,11 +65,9 @@ public class FileUploadController {
                 }
                 responseMessageBuilder.append(messageLocalizationService.getMessage("upload.success", new Object[]{file.getOriginalFilename()})).append("\n");
             } catch (DuplicateSettlementIdException e) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+                throw e; // GlobalExceptionHandler で処理
             } catch (Exception e) {
-                log.error(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), ""}), e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}));
+                throw new BusinessException(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -88,17 +87,15 @@ public class FileUploadController {
     @PostMapping("/upload-advertisement")
     public ResponseEntity<String> handleAdvertisementUpload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
+            throw new BusinessException(messageLocalizationService.getMessage("error.file_empty"), HttpStatus.BAD_REQUEST);
         }
         try {
             reportApplicationService.importAdvertisementReport(file);
             return ResponseEntity.ok(messageLocalizationService.getMessage("upload.advertisement.success"));
         } catch (SkuNameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            throw e; // GlobalExceptionHandler で処理
         } catch (Exception e) {
-            log.error(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{""}), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{e.getMessage()}));
+            throw new BusinessException(messageLocalizationService.getMessage("upload.advertisement.error", new Object[]{e.getMessage()}), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -111,7 +108,7 @@ public class FileUploadController {
     @PostMapping("/upload-sales-date")
     public ResponseEntity<String> handleSalesDateUpload(@RequestParam("files") List<MultipartFile> files) {
         if (files.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageLocalizationService.getMessage("error.file_empty"));
+            throw new BusinessException(messageLocalizationService.getMessage("error.file_empty"), HttpStatus.BAD_REQUEST);
         }
 
         StringBuilder responseMessageBuilder = new StringBuilder();
@@ -121,9 +118,7 @@ public class FileUploadController {
                 reportApplicationService.importSalesDateReport(file);
                 responseMessageBuilder.append(messageLocalizationService.getMessage("upload.success", new Object[]{file.getOriginalFilename()})).append("\n");
             } catch (Exception e) {
-                log.error(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), ""}), e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}));
+                throw new BusinessException(messageLocalizationService.getMessage("upload.error", new Object[]{file.getOriginalFilename(), e.getMessage()}), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
         return ResponseEntity.ok(responseMessageBuilder.toString());

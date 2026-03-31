@@ -9,7 +9,7 @@ import io.github.cheatbook.amzrevenuemanager.application.service.MessageLocaliza
 import io.github.cheatbook.amzrevenuemanager.domain.importer.processor.SettlementReportProcessor;
 import io.github.cheatbook.amzrevenuemanager.domain.importer.reader.SettlementReportReader;
 import io.github.cheatbook.amzrevenuemanager.domain.repository.SettlementRepository;
-import io.github.cheatbook.amzrevenuemanager.domain.service.DuplicateSettlementIdException;
+import io.github.cheatbook.amzrevenuemanager.domain.exception.DuplicateSettlementIdException;
 import io.github.cheatbook.amzrevenuemanager.domain.service.SettlementReportService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVRecord;
