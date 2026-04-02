@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from "./dynamoClient";
 import { Purchase } from "../../domain/models/Purchase";
 import { Logger } from "../../shared/logger";
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 /**
  * 仕入れ原価データのDynamoDBリポジトリ実装

@@ -3,7 +3,9 @@ import Busboy from 'busboy';
 import { SettlementParser } from '../infrastructure/parsers/SettlementParser';
 import { SettlementRepository } from '../infrastructure/persistence/SettlementRepository';
 import { Logger } from '../shared/logger';
+import { createResponse, handleOptions } from '../shared/response';
 
+// ハンドラーの外で初期化（再利用される）
 const repository = new SettlementRepository();
 
 /**
@@ -12,32 +14,23 @@ const repository = new SettlementRepository();
 const parseMultipart = (event: APIGatewayProxyEventV2): Promise<{ fileContent: string; filename: string }> => {
   return new Promise((resolve, reject) => {
     const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-    if (!contentType) {
-      return reject(new Error('Content-Type ヘッダーが見つかりません。'));
-    }
+    if (!contentType) return reject(new Error('Content-Type ヘッダーが見つかりません。'));
 
     const busboy = Busboy({ headers: { 'content-type': contentType } });
     let fileContent = '';
     let filename = '';
 
     busboy.on('file', (_fieldname, file, info) => {
-      const { filename: name } = info;
-      filename = name;
-      file.on('data', (data) => {
-        fileContent += data.toString();
-      });
+      filename = info.filename;
+      file.on('data', (data) => { fileContent += data.toString(); });
     });
 
     busboy.on('finish', () => {
-      if (!fileContent) {
-        reject(new Error('リクエスト内にファイルが見つかりません。'));
-      } else {
-        resolve({ fileContent, filename });
-      }
+      if (!fileContent) reject(new Error('リクエスト内にファイルが見つかりません。'));
+      else resolve({ fileContent, filename });
     });
 
     busboy.on('error', (err) => reject(err));
-
     const body = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64') : event.body || '';
     busboy.end(body);
   });
@@ -48,9 +41,9 @@ const parseMultipart = (event: APIGatewayProxyEventV2): Promise<{ fileContent: s
  */
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
-  if (method === 'OPTIONS') {
-    return createResponse(200, { message: 'OK' });
-  }
+  
+  // OPTIONS リクエストの共通処理
+  if (method === 'OPTIONS') return handleOptions()!;
 
   Logger.info('決済レポート処理を開始します。');
 
@@ -73,18 +66,6 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     return createResponse(500, {
       message: '内部サーバーエラーが発生しました。',
       error: error instanceof Error ? error.message : String(error),
-      stack: process.env.DEBUG === 'true' && error instanceof Error ? error.stack : undefined,
     });
   }
 };
-
-const createResponse = (statusCode: number, body: any): APIGatewayProxyResultV2 => ({
-  statusCode,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-  },
-  body: JSON.stringify(body),
-});

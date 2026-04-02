@@ -6,7 +6,9 @@ import { PurchaseRepository } from '../infrastructure/persistence/PurchaseReposi
 import { SalesDateRepository } from '../infrastructure/persistence/SalesDateRepository';
 import { MonthlyRevenueSummaryService } from '../domain/services/MonthlyRevenueSummaryService';
 import { Logger } from '../shared/logger';
+import { createResponse, handleOptions } from '../shared/response';
 
+// ハンドラーの外で初期化（再利用される）
 const settlementRepo = new SettlementRepository();
 const skuNameRepo = new SkuNameRepository();
 const adRepo = new AdvertisementRepository();
@@ -18,9 +20,9 @@ const salesDateRepo = new SalesDateRepository();
  */
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
-  if (method === 'OPTIONS') {
-    return createResponse(200, { message: 'OK' });
-  }
+
+  // OPTIONS リクエストの共通処理
+  if (method === 'OPTIONS') return handleOptions()!;
 
   Logger.info('月次収益サマリーの取得リクエストを受信しました。');
 
@@ -48,14 +50,3 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     return createResponse(500, { message: '内部サーバーエラーが発生しました。' });
   }
 };
-
-const createResponse = (statusCode: number, body: any): APIGatewayProxyResultV2 => ({
-  statusCode,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-  },
-  body: JSON.stringify(body),
-});

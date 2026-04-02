@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from "./dynamoClient";
 import { Advertisement } from "../../domain/models/Advertisement";
 import { Logger } from "../../shared/logger";
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 /**
  * 広告費データのDynamoDBリポジトリ実装
@@ -34,9 +31,8 @@ export class AdvertisementRepository {
    */
   public async saveAll(ads: Advertisement[]): Promise<void> {
     Logger.info(`${ads.length} 件の広告費レコードを保存します。`);
-    for (const ad of ads) {
-      await this.save(ad);
-    }
+    const promises = ads.map(ad => this.save(ad));
+    await Promise.all(promises);
     Logger.info('広告費の一括保存が完了しました。');
   }
 

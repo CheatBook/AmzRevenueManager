@@ -3,7 +3,9 @@ import Busboy from 'busboy';
 import { AdvertisementParser } from '../infrastructure/parsers/AdvertisementParser';
 import { AdvertisementRepository } from '../infrastructure/persistence/AdvertisementRepository';
 import { Logger } from '../shared/logger';
+import { createResponse, handleOptions } from '../shared/response';
 
+// ハンドラーの外で初期化（再利用される）
 const repository = new AdvertisementRepository();
 
 /**
@@ -11,9 +13,9 @@ const repository = new AdvertisementRepository();
  */
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
-  if (method === 'OPTIONS') {
-    return createResponse(200, { message: 'OK' });
-  }
+
+  // OPTIONS リクエストの共通処理
+  if (method === 'OPTIONS') return handleOptions()!;
 
   Logger.info('広告レポートのアップロードリクエストを受信しました。');
 
@@ -27,7 +29,10 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     return createResponse(200, { message: '広告レポートの処理が完了しました。', count: ads.length });
   } catch (error) {
     Logger.error('広告レポートの処理中にエラーが発生しました。', error);
-    return createResponse(500, { message: '内部サーバーエラーが発生しました。', error: error instanceof Error ? error.message : String(error) });
+    return createResponse(500, { 
+      message: '内部サーバーエラーが発生しました。', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
   }
 };
 
@@ -55,14 +60,3 @@ const parseMultipart = (event: APIGatewayProxyEventV2): Promise<{ fileContent: s
     busboy.end(body);
   });
 };
-
-const createResponse = (statusCode: number, body: any): APIGatewayProxyResultV2 => ({
-  statusCode,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-  },
-  body: JSON.stringify(body),
-});

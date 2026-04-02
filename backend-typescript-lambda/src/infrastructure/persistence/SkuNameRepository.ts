@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from "./dynamoClient";
 import { SkuName } from "../../domain/models/SkuName";
 import { Logger } from "../../shared/logger";
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 /**
  * SKU名マッピングのDynamoDBリポジトリ実装

@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from "./dynamoClient";
 import { Settlement } from "../../domain/models/Settlement";
 import { Logger } from "../../shared/logger";
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 /**
  * 決済情報のDynamoDBリポジトリ実装
@@ -34,10 +31,9 @@ export class SettlementRepository {
    */
   public async saveAll(settlements: Settlement[]): Promise<void> {
     Logger.info(`${settlements.length} 件の決済レコードを保存します。`);
-    // 本来は BatchWriteItem を使用すべきですが、簡単のためループで実装
-    for (const settlement of settlements) {
-      await this.save(settlement);
-    }
+    // 大量データの場合は並列実行して高速化
+    const promises = settlements.map(s => this.save(s));
+    await Promise.all(promises);
     Logger.info('一括保存が完了しました。');
   }
 

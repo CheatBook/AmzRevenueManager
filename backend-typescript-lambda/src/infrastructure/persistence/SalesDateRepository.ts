@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { docClient } from "./dynamoClient";
 import { SalesDate } from "../../domain/models/SalesDate";
 import { Logger } from "../../shared/logger";
-
-const client = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(client);
 
 /**
  * 販売日管理データのDynamoDBリポジトリ実装
@@ -34,9 +31,8 @@ export class SalesDateRepository {
    */
   public async saveAll(salesDates: SalesDate[]): Promise<void> {
     Logger.info(`${salesDates.length} 件の販売日情報を保存します。`);
-    for (const item of salesDates) {
-      await this.save(item);
-    }
+    const promises = salesDates.map(item => this.save(item));
+    await Promise.all(promises);
     Logger.info('販売日情報の一括保存が完了しました。');
   }
 
