@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:8080/api
+
+### 1. SKU名一覧取得
+GET {{baseUrl}}/sku-names
+Accept: application/json
+
+### 2. ユニークなSKUリスト取得 (決済データから)
+GET {{baseUrl}}/sku-names/distinct-skus
+Accept: application/json
+
+### 3. 親SKU一覧取得
+GET {{baseUrl}}/sku-names/parent-skus
+Accept: application/json
+
+### 4. SKU名の保存
+POST {{baseUrl}}/sku-names
+Content-Type: application/json
+
+{
+  "sku": "TEST-SKU-001",
+  "japaneseName": "テスト商品001",
+  "parentSku": "PARENT-SKU-001"
+}
+
+### 5. 親SKUの作成
+POST {{baseUrl}}/sku-names/parent-sku
+Content-Type: application/json
+
+{
+  "japaneseName": "新規テスト親商品"
+}

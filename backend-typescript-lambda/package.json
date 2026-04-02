@@ -1,0 +1,29 @@
+{
+  "name": "backend-typescript-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/handlers/*.ts --bundle --minify --sourcemap --platform=node --target=es2022 --outdir=dist/handlers",
+    "watch": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/busboy": "^1.5.4",
+    "@types/node": "^25.5.0",
+    "esbuild": "^0.27.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1022.0",
+    "@aws-sdk/lib-dynamodb": "^3.1022.0",
+    "busboy": "^1.6.0",
+    "csv-parse": "^6.2.1"
+  }
+}

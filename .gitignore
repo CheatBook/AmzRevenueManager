@@ -33,7 +33,11 @@ build/
 .vscode/
 data/*
 
-# Frontend dependencies and build artifacts
+# Frontend and Lambda dependencies and build artifacts
 node_modules/
 dist/
 target/
+
+# AWS SAM artifacts
+.aws-sam/
+samconfig.toml

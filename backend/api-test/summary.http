@@ -1,0 +1,9 @@
+@baseUrl = http://localhost:8080/api
+
+### 1. 月次収益サマリー取得
+GET {{baseUrl}}/monthly-summary
+Accept: application/json
+
+### 2. トランザクションデータ一覧取得
+GET {{baseUrl}}/transaction-data
+Accept: application/json

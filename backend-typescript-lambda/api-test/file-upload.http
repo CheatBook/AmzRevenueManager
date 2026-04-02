@@ -1,0 +1,19 @@
+@baseUrl = https://pd1qwbm17e.execute-api.ap-northeast-1.amazonaws.com
+
+### 1. 決済レポートアップロード (TSV)
+POST {{baseUrl}}/sales/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="20251231_20260114.tsv"
+Content-Type: text/tab-separated-values
+
+< ./data/20251231_20260114.tsv
+--WebAppBoundary--
+
+### 2. 売上集計の取得 (全データ)
+GET {{baseUrl}}/sales/summary
+
+### 3. 特定の決済IDでの売上集計取得
+# settlement-id は TSV 内の 12224439973 を使用
+GET {{baseUrl}}/sales/summary?settlementId=12224439973

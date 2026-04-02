@@ -1,0 +1,45 @@
+@baseUrl = http://localhost:8080/api
+
+### 1. 決済レポートアップロード (正常系)
+# 注意: 実際にファイルを送る場合は、VS Code REST Client の構文を使用します
+POST {{baseUrl}}/sales/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="dummy_settlement.csv"
+Content-Type: text/csv
+
+< ./data/dummy_settlement.csv
+--WebAppBoundary--
+
+### 2. 決済レポートアップロード (エラー系: ファイル空)
+POST {{baseUrl}}/sales/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="empty.csv"
+Content-Type: text/csv
+
+--WebAppBoundary--
+
+### 3. 広告レポートアップロード
+POST {{baseUrl}}/sales/upload-advertisement
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="dummy_ad.csv"
+Content-Type: text/csv
+
+< ./data/dummy_ad.csv
+--WebAppBoundary--
+
+### 4. 販売日管理レポートアップロード
+POST {{baseUrl}}/sales/upload-sales-date
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="dummy_sales_date.txt"
+Content-Type: text/plain
+
+< ./data/dummy_sales_date.txt
+--WebAppBoundary--

@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:8080/api
+
+### 1. 仕入れ情報一覧取得
+GET {{baseUrl}}/purchases
+Accept: application/json
+
+### 2. 仕入れ情報の新規登録
+POST {{baseUrl}}/purchases
+Content-Type: application/json
+
+{
+  "parentSku": "PARENT-SKU-001",
+  "purchaseDate": "2026-03-01",
+  "quantity": 100,
+  "amount": 50000,
+  "tariff": 2500
+}
+
+### 3. 仕入れ情報の更新
+# パス変数: {parentSku}/{purchaseDate}
+PUT {{baseUrl}}/purchases/PARENT-SKU-001/2026-03-01
+Content-Type: application/json
+
+{
+  "parentSku": "PARENT-SKU-001",
+  "purchaseDate": "2026-03-01",
+  "quantity": 120,
+  "amount": 60000,
+  "tariff": 3000
+}

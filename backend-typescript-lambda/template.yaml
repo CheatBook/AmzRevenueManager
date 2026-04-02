@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Amazon Revenue Manager - TypeScript Lambda Backend with Cognito
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    MemorySize: 256
+    Timeout: 60
+    Environment:
+      Variables:
+        SETTLEMENT_TABLE_NAME: !Ref SettlementsTableFull
+
+Resources:
+  # --- Cognito Resources ---
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: AmzRevenueUserPool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: AmzRevenueWebClient
+      UserPoolId: !Ref UserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+
+  # --- API Gateway with Cognito Authorizer ---
+  ServerlessHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              audience:
+                - !Ref UserPoolClient
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
+
+  # --- Lambda Functions ---
+  ProcessSettlementFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./dist
+      Handler: handlers/processSettlement.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SettlementsTableFull
+      Events:
+        UploadApi:
+          Type: HttpApi
+          Properties:
+            Path: /sales/upload
+            Method: post
+
+  GetRevenueSummaryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./dist
+      Handler: handlers/getRevenueSummary.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SettlementsTableFull
+      Events:
+        SummaryApi:
+          Type: HttpApi
+          Properties:
+            Path: /sales/summary
+            Method: get
+
+  # --- DynamoDB Table ---
+  SettlementsTableFull:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  ApiEndpoint:
+    Description: "HTTP API endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  UserPoolId:
+    Description: "Cognito User Pool ID"
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: "Cognito User Pool Client ID"
+    Value: !Ref UserPoolClient
