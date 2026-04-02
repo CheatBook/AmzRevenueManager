@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import axios from "axios";
+import { post } from 'aws-amplify/api';
 
 const selectedFiles = reactive<{ [key: string]: FileList | null }>({});
 const messages = reactive<{ [key: string]: string }>({});
@@ -41,27 +41,38 @@ const handleUpload = async (
     formData.append("file", selectedFile[0]);
   }
 
-  let url = "";
+  let path = "";
   switch (uploadType) {
     case "payment":
-      url = "/api/sales/upload";
+      path = "/sales/upload";
       break;
     case "advertisement":
-      url = "/api/sales/upload-advertisement";
+      path = "/sales/upload-advertisement";
       break;
     case "salesDate":
-      url = "/api/sales/upload-sales-date";
+      path = "/sales/upload-sales-date";
       break;
   }
 
   try {
-    const response = await axios.post(url, formData);
-    messages[uploadType] = response.data;
+    const restOperation = post({
+      apiName: 'AmzRevenueApi',
+      path: path,
+      options: {
+        body: formData,
+        // Amplify automatically handles Content-Type for FormData
+      }
+    });
+
+    const response = await restOperation.response;
+    const body = await response.body.json() as any;
+    
+    messages[uploadType] = body.message || "アップロードが完了しました。";
     errors[uploadType] = "";
   } catch (err: any) {
     console.error("アップロードエラー:", err);
     errors[uploadType] =
-      err.response?.data || "アップロード中にエラーが発生しました。";
+      err.message || "アップロード中にエラーが発生しました。";
     messages[uploadType] = "";
   } finally {
     isLoading[uploadType] = false;

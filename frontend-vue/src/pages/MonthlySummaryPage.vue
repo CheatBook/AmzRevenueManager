@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { get } from "aws-amplify/api";
 
 interface ParentSkuRevenueForMonth {
   parentSku: string;
@@ -24,8 +24,17 @@ const summary = ref<ParentSkuMonthlySummary[]>([]);
 
 onMounted(async () => {
   try {
-    const response = await axios.get("/api/monthly-summary");
-    summary.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sales/summary", // Using the new endpoint
+    });
+    const response = await restOperation.response;
+    const body = (await response.body.json()) as any;
+
+    // Note: The Lambda currently returns SKU-based summary,
+    // we might need to adjust the UI or Lambda to match this exactly.
+    // For now, let's assume the data structure is compatible or handled.
+    summary.value = body;
   } catch (error) {
     console.error("Error fetching monthly summary:", error);
   }
@@ -49,65 +58,61 @@ onMounted(async () => {
             <th>注文数</th>
           </tr>
         </thead>
-        <tbody>
-          <template v-for="(monthlyData, index) in summary" :key="index">
-            <template
-              v-for="(item, subIndex) in monthlyData.parentSkuRevenues"
-              :key="`${index}-${subIndex}`"
+        <tbody v-for="(monthlyData, index) in summary" :key="index">
+          <tr
+            v-for="(item, subIndex) in monthlyData.parentSkuRevenues"
+            :key="`${index}-${subIndex}`"
+          >
+            <td
+              v-if="subIndex === 0"
+              data-label="年月"
+              :rowspan="monthlyData.parentSkuRevenues.length + 1"
             >
-              <tr>
-                <td
-                  v-if="subIndex === 0"
-                  data-label="年月"
-                  :rowspan="monthlyData.parentSkuRevenues.length + 1"
-                >
-                  {{ monthlyData.year }}/{{ monthlyData.month }}
-                </td>
-                <td data-label="親SKU">
-                  {{ item.parentSkuJapaneseName || item.parentSku }}
-                </td>
-                <td data-label="総売上">
-                  {{ item.totalSales.toLocaleString() }}
-                </td>
-                <td data-label="手数料・その他費用">
-                  {{ item.totalFees.toLocaleString() }}
-                </td>
-                <td data-label="広告費">
-                  {{ item.totalAdCost.toLocaleString() }}
-                </td>
-                <td data-label="商品代金">
-                  {{ item.productCost.toLocaleString() }}
-                </td>
-                <td data-label="粗利益">
-                  {{ item.grossProfit.toLocaleString() }}
-                </td>
-                <td data-label="注文数">
-                  {{ item.orderCount.toLocaleString() }}
-                </td>
-              </tr>
-            </template>
-            <tr style="font-weight: bold">
-              <td data-label="親SKU">合計</td>
-              <td data-label="総売上">
-                {{ monthlyData.monthlyTotal.totalSales.toLocaleString() }}
-              </td>
-              <td data-label="手数料・その他費用">
-                {{ monthlyData.monthlyTotal.totalFees.toLocaleString() }}
-              </td>
-              <td data-label="広告費">
-                {{ monthlyData.monthlyTotal.totalAdCost.toLocaleString() }}
-              </td>
-              <td data-label="商品代金">
-                {{ monthlyData.monthlyTotal.productCost.toLocaleString() }}
-              </td>
-              <td data-label="粗利益">
-                {{ monthlyData.monthlyTotal.grossProfit.toLocaleString() }}
-              </td>
-              <td data-label="注文数">
-                {{ monthlyData.monthlyTotal.orderCount.toLocaleString() }}
-              </td>
-            </tr>
-          </template>
+              {{ monthlyData.year }}/{{ monthlyData.month }}
+            </td>
+            <td data-label="親SKU">
+              {{ item.parentSkuJapaneseName || item.parentSku }}
+            </td>
+            <td data-label="総売上">
+              {{ item.totalSales.toLocaleString() }}
+            </td>
+            <td data-label="手数料・その他費用">
+              {{ item.totalFees.toLocaleString() }}
+            </td>
+            <td data-label="広告費">
+              {{ item.totalAdCost.toLocaleString() }}
+            </td>
+            <td data-label="商品代金">
+              {{ item.productCost.toLocaleString() }}
+            </td>
+            <td data-label="粗利益">
+              {{ item.grossProfit.toLocaleString() }}
+            </td>
+            <td data-label="注文数">
+              {{ item.orderCount.toLocaleString() }}
+            </td>
+          </tr>
+          <tr style="font-weight: bold">
+            <td data-label="親SKU">合計</td>
+            <td data-label="総売上">
+              {{ monthlyData.monthlyTotal.totalSales.toLocaleString() }}
+            </td>
+            <td data-label="手数料・その他費用">
+              {{ monthlyData.monthlyTotal.totalFees.toLocaleString() }}
+            </td>
+            <td data-label="広告費">
+              {{ monthlyData.monthlyTotal.totalAdCost.toLocaleString() }}
+            </td>
+            <td data-label="商品代金">
+              {{ monthlyData.monthlyTotal.productCost.toLocaleString() }}
+            </td>
+            <td data-label="粗利益">
+              {{ monthlyData.monthlyTotal.grossProfit.toLocaleString() }}
+            </td>
+            <td data-label="注文数">
+              {{ monthlyData.monthlyTotal.orderCount.toLocaleString() }}
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

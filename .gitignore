@@ -41,3 +41,6 @@ target/
 # AWS SAM artifacts
 .aws-sam/
 samconfig.toml
+
+# Test data
+backend-typescript-lambda/api-test/data/
