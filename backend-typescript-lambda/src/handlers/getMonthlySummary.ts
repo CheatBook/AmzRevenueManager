@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { SettlementRepository } from '../infrastructure/persistence/SettlementRepository';
 import { SkuNameRepository } from '../infrastructure/persistence/SkuNameRepository';
 import { AdvertisementRepository } from '../infrastructure/persistence/AdvertisementRepository';
@@ -16,7 +16,12 @@ const salesDateRepo = new SalesDateRepository();
 /**
  * 月次収益サマリーを取得する Lambda ハンドラー
  */
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
+  const method = event.requestContext.http.method;
+  if (method === 'OPTIONS') {
+    return createResponse(200, { message: 'OK' });
+  }
+
   Logger.info('月次収益サマリーの取得リクエストを受信しました。');
 
   try {
@@ -44,8 +49,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 };
 
-const createResponse = (statusCode: number, body: any): APIGatewayProxyResult => ({
+const createResponse = (statusCode: number, body: any): APIGatewayProxyResultV2 => ({
   statusCode,
-  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+  },
   body: JSON.stringify(body),
 });

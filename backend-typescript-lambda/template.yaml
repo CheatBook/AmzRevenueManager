@@ -49,6 +49,22 @@ Resources:
   ServerlessHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Amz-Date"
+          - "X-Api-Key"
+          - "X-Amz-Security-Token"
+        AllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        MaxAge: 600
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
@@ -71,11 +87,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SettlementsTable
       Events:
-        UploadApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /sales/upload
-            Method: post
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # 2. 収益サマリー取得
   GetRevenueSummaryFunction:
@@ -89,11 +106,12 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref SkuNamesTable
       Events:
-        SummaryApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /sales/summary
-            Method: get
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # 3. SKU名管理
   ManageSkuNameFunction:
@@ -105,21 +123,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SkuNamesTable
       Events:
-        GetApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /sku-names
-            Method: get
-        PostApi:
-          Type: HttpApi
-          Properties:
-            Path: /sku-names
-            Method: post
-        DeleteApi:
-          Type: HttpApi
-          Properties:
-            Path: /sku-names
-            Method: delete
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # 4. 広告レポート処理
   UploadAdvertisementFunction:
@@ -131,11 +140,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref AdvertisementsTable
       Events:
-        UploadApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /sales/upload-advertisement
-            Method: post
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # 5. 仕入れ情報管理
   ManagePurchaseFunction:
@@ -147,16 +157,12 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref PurchasesTable
       Events:
-        GetApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /purchase
-            Method: get
-        PostApi:
-          Type: HttpApi
-          Properties:
-            Path: /purchase
-            Method: post
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # 6. 月次サマリー取得
   GetMonthlySummaryFunction:
@@ -176,11 +182,12 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref SalesDatesTable
       Events:
-        SummaryApi:
+        AnyMethodApi: # 名前を変更して衝突を避ける
           Type: HttpApi
           Properties:
             Path: /monthly-summary
-            Method: get
+            Method: any
+            ApiId: !Ref ServerlessHttpApi
 
   # --- DynamoDB Tables ---
   SettlementsTable:

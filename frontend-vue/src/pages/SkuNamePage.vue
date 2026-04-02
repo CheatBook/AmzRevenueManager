@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { get, post } from "aws-amplify/api";
 
 interface SkuName {
   sku: string;
@@ -19,8 +19,15 @@ const isLoading = ref(false);
 
 const fetchParentSkus = async () => {
   try {
-    const response = await axios.get("/api/sku-names/parent-skus");
-    parentSkus.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      parentSkus.value = data.filter((s) => !s.parentSku);
+    }
   } catch (error) {
     console.error("親SKU取得エラー:", error);
   }
@@ -28,8 +35,15 @@ const fetchParentSkus = async () => {
 
 const fetchDistinctSkus = async () => {
   try {
-    const response = await axios.get("/api/sku-names/distinct-skus");
-    distinctSkus.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sales/summary",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      distinctSkus.value = Array.from(new Set(data.map((s) => s.sku).filter(Boolean)));
+    }
   } catch (error) {
     console.error("ユニークなSKU取得エラー:", error);
   }
@@ -38,8 +52,15 @@ const fetchDistinctSkus = async () => {
 const fetchSkuNames = async () => {
   isLoading.value = true;
   try {
-    const response = await axios.get("/api/sku-names");
-    skuNames.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      skuNames.value = data;
+    }
     message.value = "";
   } catch (error) {
     console.error("SKU名取得エラー:", error);
@@ -58,22 +79,27 @@ const handleSubmit = async () => {
   isLoading.value = true;
   message.value = "SKU名を保存中です...";
   try {
-    const response = await axios.post("/api/sku-names", {
-      sku: selectedSku.value,
-      japaneseName: newJapaneseName.value,
-      parentSku: selectedParentSku.value || null,
+    const restOperation = post({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+      options: {
+        body: {
+          sku: selectedSku.value,
+          japaneseName: newJapaneseName.value,
+          parentSku: selectedParentSku.value || undefined,
+        } as any,
+      },
     });
 
-    if (response.status === 200 || response.status === 201) {
-      message.value = "SKU名が正常に保存されました。";
-      selectedSku.value = "";
-      newJapaneseName.value = "";
-      selectedParentSku.value = "";
-      fetchSkuNames();
-    }
+    await restOperation.response;
+    message.value = "SKU名が正常に保存されました。";
+    selectedSku.value = "";
+    newJapaneseName.value = "";
+    selectedParentSku.value = "";
+    fetchSkuNames();
   } catch (error: any) {
     console.error("保存エラー:", error);
-    message.value = `保存失敗: ${error.response?.statusText || "エラーが発生しました"}`;
+    message.value = "保存に失敗しました。";
   } finally {
     isLoading.value = false;
   }

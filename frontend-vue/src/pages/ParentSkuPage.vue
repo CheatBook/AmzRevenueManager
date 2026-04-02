@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { get, post } from "aws-amplify/api";
 
 interface SkuName {
   sku: string;
   japaneseName: string;
+  parentSku?: string;
 }
 
 const newJapaneseName = ref("");
@@ -14,8 +15,15 @@ const isLoading = ref(false);
 
 const fetchParentSkus = async () => {
   try {
-    const response = await axios.get("/api/sku-names/parent-skus");
-    parentSkus.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      parentSkus.value = data.filter((s) => !s.parentSku);
+    }
   } catch (error) {
     console.error("親SKU取得エラー:", error);
   }
@@ -30,18 +38,28 @@ const handleSubmit = async () => {
   isLoading.value = true;
   message.value = "親SKU名を保存中です...";
   try {
-    const response = await axios.post("/api/sku-names/parent-sku", {
-      japaneseName: newJapaneseName.value,
+    const restOperation = post({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+      options: {
+        body: {
+          sku: `PARENT-${Date.now()}`,
+          japaneseName: newJapaneseName.value,
+          parentSku: "", // undefined ではなく空文字、またはプロパティ自体を含めない
+        },
+      },
     });
 
-    if (response.status === 200 || response.status === 201) {
-      message.value = "親SKU名が正常に登録されました。";
-      newJapaneseName.value = "";
-      fetchParentSkus();
-    }
+    const { body } = await restOperation.response;
+    const responseData = await body.json();
+    console.log("保存成功:", responseData);
+
+    message.value = "親SKU名が正常に登録されました。";
+    newJapaneseName.value = "";
+    fetchParentSkus();
   } catch (error: any) {
     console.error("保存エラー:", error);
-    message.value = `保存失敗: ${error.response?.statusText || "エラーが発生しました"}`;
+    message.value = `保存に失敗しました: ${error.message || "不明なエラー"}`;
   } finally {
     isLoading.value = false;
   }

@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { SkuNameRepository } from '../infrastructure/persistence/SkuNameRepository';
 import { Logger } from '../shared/logger';
 import { SkuName } from '../domain/models/SkuName';
@@ -8,11 +8,15 @@ const repository = new SkuNameRepository();
 /**
  * SKU名マッピングを管理する Lambda ハンドラー
  */
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
   Logger.info(`SKU名管理リクエストを受信しました: ${method}`);
 
   try {
+    if (method === 'OPTIONS') {
+      return createResponse(200, { message: 'OK' });
+    }
+
     switch (method) {
       case 'GET':
         const sku = event.queryStringParameters?.sku;
@@ -45,8 +49,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 };
 
-const createResponse = (statusCode: number, body: any): APIGatewayProxyResult => ({
+const createResponse = (statusCode: number, body: any): APIGatewayProxyResultV2 => ({
   statusCode,
-  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+  },
   body: JSON.stringify(body),
 });

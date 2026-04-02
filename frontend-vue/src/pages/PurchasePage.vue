@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { get, post } from "aws-amplify/api";
 
 interface SkuName {
   sku: string;
@@ -9,12 +9,12 @@ interface SkuName {
 }
 
 interface Purchase {
-  parentSku: string;
+  sku: string;
   purchaseDate: string;
   quantity: number;
   amount: number;
   tariff: number;
-  unitPrice: number;
+  unitCost: number;
 }
 
 const parentSkus = ref<SkuName[]>([]);
@@ -30,7 +30,7 @@ const isLoading = ref(false);
 const editingPurchase = ref<Purchase | null>(null);
 
 const formatNumber = (num: number) => {
-  return Math.round(num).toLocaleString();
+  return Math.round(num || 0).toLocaleString();
 };
 
 const getJapaneseName = (sku: string) => {
@@ -40,28 +40,42 @@ const getJapaneseName = (sku: string) => {
 
 const fetchPurchases = async () => {
   try {
-    const response = await axios.get("/api/purchases");
-    purchases.value = response.data;
-  } catch (err) {
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/purchase",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      purchases.value = data;
+    }
+  } catch {
     error.value = "仕入れ情報の取得中にエラーが発生しました。";
   }
 };
 
 const fetchParentSkus = async () => {
   try {
-    const response = await axios.get("/api/sku-names/parent-skus");
-    parentSkus.value = response.data;
-    if (response.data.length > 0 && !selectedParentSku.value) {
-      selectedParentSku.value = response.data[0].sku;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sku-names",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any[];
+    if (Array.isArray(data)) {
+      parentSkus.value = data.filter((s) => !s.parentSku);
+      if (parentSkus.value.length > 0 && !selectedParentSku.value) {
+        selectedParentSku.value = parentSkus.value[0].sku;
+      }
     }
-  } catch (err) {
+  } catch {
     error.value = "親SKUの取得中にエラーが発生しました。";
   }
 };
 
 const handleEdit = (purchase: Purchase) => {
   editingPurchase.value = purchase;
-  selectedParentSku.value = purchase.parentSku;
+  selectedParentSku.value = purchase.sku;
   purchaseDate.value = purchase.purchaseDate;
   quantity.value = purchase.quantity;
   amount.value = purchase.amount;
@@ -96,24 +110,24 @@ const handleSubmit = async () => {
   error.value = "";
 
   const purchaseData = {
-    parentSku: selectedParentSku.value,
+    sku: selectedParentSku.value,
     purchaseDate: purchaseDate.value,
     quantity: quantity.value,
     amount: amount.value,
     tariff: tariff.value,
+    unitCost: amount.value / quantity.value,
   };
 
   try {
-    const url = editingPurchase.value
-      ? `/api/purchases/${editingPurchase.value.parentSku}/${editingPurchase.value.purchaseDate}`
-      : "/api/purchases";
-    const method = editingPurchase.value ? "put" : "post";
-
-    await axios({
-      method: method,
-      url: url,
-      data: purchaseData,
+    const restOperation = post({
+      apiName: "AmzRevenueApi",
+      path: "/purchase",
+      options: {
+        body: purchaseData as any,
+      },
     });
+
+    await restOperation.response;
 
     message.value = editingPurchase.value
       ? "仕入れ情報を更新しました。"
@@ -122,7 +136,7 @@ const handleSubmit = async () => {
     fetchPurchases();
   } catch (err: any) {
     console.error("処理エラー:", err);
-    error.value = err.response?.data || "処理中にエラーが発生しました。";
+    error.value = "処理中にエラーが発生しました。";
     message.value = "";
   } finally {
     isLoading.value = false;
@@ -205,16 +219,16 @@ onMounted(() => {
           <tbody>
             <tr
               v-for="purchase in purchases"
-              :key="`${purchase.parentSku}-${purchase.purchaseDate}`"
+              :key="`${purchase.sku}-${purchase.purchaseDate}`"
             >
               <td data-label="仕入れ日">{{ purchase.purchaseDate }}</td>
               <td data-label="親SKU">
-                {{ getJapaneseName(purchase.parentSku) }}
+                {{ getJapaneseName(purchase.sku) }}
               </td>
               <td data-label="数量">{{ formatNumber(purchase.quantity) }}</td>
               <td data-label="金額">{{ formatNumber(purchase.amount) }}</td>
               <td data-label="関税">{{ formatNumber(purchase.tariff) }}</td>
-              <td data-label="単価">{{ formatNumber(purchase.unitPrice) }}</td>
+              <td data-label="単価">{{ formatNumber(purchase.unitCost) }}</td>
               <td data-label="編集">
                 <button @click="handleEdit(purchase)">編集</button>
               </td>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { get } from "aws-amplify/api";
 
 interface TransactionData {
   settlementId: string;
@@ -13,13 +13,25 @@ interface TransactionData {
 }
 
 const transactionData = ref<TransactionData[]>([]);
+const isLoading = ref(false);
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
-    const response = await axios.get("/api/transaction-data");
-    transactionData.value = response.data;
+    const restOperation = get({
+      apiName: "AmzRevenueApi",
+      path: "/sales/summary",
+    });
+    const { body } = await restOperation.response;
+    const data = (await body.json()) as any;
+    
+    if (Array.isArray(data)) {
+      transactionData.value = data;
+    }
   } catch (error) {
-    console.error("Error fetching transaction data:", error);
+    console.error("トランザクションデータ取得エラー:", error);
+  } finally {
+    isLoading.value = false;
   }
 });
 </script>
@@ -27,7 +39,9 @@ onMounted(async () => {
 <template>
   <div>
     <h1>トランザクションデータ一覧</h1>
-    <div class="table-container">
+    <div v-if="isLoading">読み込み中...</div>
+    <div v-else-if="transactionData.length === 0">データがありません。</div>
+    <div v-else class="table-container">
       <table>
         <thead>
           <tr>
@@ -42,13 +56,13 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="(data, index) in transactionData" :key="index">
-            <td data-label="登録親番号">{{ data.settlementId }}</td>
-            <td data-label="SKU">{{ data.sku }}</td>
-            <td data-label="分類">{{ data.amountDescription }}</td>
-            <td data-label="個数">{{ data.quantityPurchased }}</td>
-            <td data-label="購入日">{{ data.purchaseDate }}</td>
-            <td data-label="購入確定日">{{ data.postedDateTime }}</td>
-            <td data-label="金額">{{ data.amount }}</td>
+            <td data-label="登録親番号">{{ data.settlementId || '-' }}</td>
+            <td data-label="SKU">{{ data.sku || '-' }}</td>
+            <td data-label="分類">{{ data.amountDescription || '-' }}</td>
+            <td data-label="個数">{{ data.quantityPurchased ?? 0 }}</td>
+            <td data-label="購入日">{{ data.purchaseDate || '-' }}</td>
+            <td data-label="購入確定日">{{ data.postedDateTime || '-' }}</td>
+            <td data-label="金額">{{ (data.amount || 0).toLocaleString() }}</td>
           </tr>
         </tbody>
       </table>

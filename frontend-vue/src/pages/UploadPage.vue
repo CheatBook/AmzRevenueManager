@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import { post } from 'aws-amplify/api';
+import { reactive } from "vue";
+import { post } from "aws-amplify/api";
 
 const selectedFiles = reactive<{ [key: string]: FileList | null }>({});
 const messages = reactive<{ [key: string]: string }>({});
@@ -56,17 +56,17 @@ const handleUpload = async (
 
   try {
     const restOperation = post({
-      apiName: 'AmzRevenueApi',
+      apiName: "AmzRevenueApi",
       path: path,
       options: {
         body: formData,
         // Amplify automatically handles Content-Type for FormData
-      }
+      },
     });
 
     const response = await restOperation.response;
-    const body = await response.body.json() as any;
-    
+    const body = (await response.body.json()) as any;
+
     messages[uploadType] = body.message || "アップロードが完了しました。";
     errors[uploadType] = "";
   } catch (err: any) {
