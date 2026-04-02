@@ -1,20 +1,24 @@
 import { Settlement } from "../models/Settlement";
 import { SkuRevenueSummary } from "../models/RevenueSummary";
+import { Logger } from "../../shared/logger";
 
+/**
+ * 収益サマリーの計算を行うドメインサービス
+ */
 export class RevenueSummaryService {
   /**
-   * Calculates revenue summaries grouped by SKU from a list of settlements.
+   * 決済リストからSKUごとにグループ化された収益サマリーを計算します。
    */
-  public static calculateSkuRevenueSummaries(
-    settlements: Settlement[],
-  ): SkuRevenueSummary[] {
+  public static calculateSkuRevenueSummaries(settlements: Settlement[]): SkuRevenueSummary[] {
+    Logger.info('SKU別収益サマリーの計算を開始します。');
+    
     const skuSummaryMap: Record<string, SkuRevenueSummary> = {};
     const skuToOrderIdQuantityMap: Record<string, Record<string, number>> = {};
     const skuToOrderIds: Record<string, Set<string>> = {};
 
-    // Filter only Order and Refund transactions
+    // Order と Refund トランザクションのみを対象にする
     const orderSettlements = settlements.filter(
-      (s) => s.transactionType === "Order" || s.transactionType === "Refund",
+      (s) => s.transactionType === "Order" || s.transactionType === "Refund"
     );
 
     for (const settlement of orderSettlements) {
@@ -24,7 +28,7 @@ export class RevenueSummaryService {
       if (!skuSummaryMap[sku]) {
         skuSummaryMap[sku] = {
           sku,
-          japaneseName: "", // In the future, fetch from SkuName table
+          japaneseName: "", // 将来的に SkuName テーブルから取得
           totalRevenue: 0,
           totalCommission: 0,
           totalShipping: 0,
@@ -53,7 +57,7 @@ export class RevenueSummaryService {
           if (orderId) {
             skuToOrderIdQuantityMap[sku][orderId] = Math.max(
               skuToOrderIdQuantityMap[sku][orderId] || 0,
-              quantity,
+              quantity
             );
           }
           break;
@@ -73,16 +77,20 @@ export class RevenueSummaryService {
       }
     }
 
-    // Finalize counts and profit
-    return Object.values(skuSummaryMap).map((summary) => {
+    // カウントと利益の最終計算
+    const results = Object.values(skuSummaryMap).map((summary) => {
       const sku = summary.sku;
       summary.settlementCount = skuToOrderIds[sku].size;
-      summary.totalQuantityPurchased = Object.values(
-        skuToOrderIdQuantityMap[sku],
-      ).reduce((sum, q) => sum + q, 0);
+      summary.totalQuantityPurchased = Object.values(skuToOrderIdQuantityMap[sku]).reduce(
+        (sum, q) => sum + q,
+        0
+      );
       summary.grossProfit =
         summary.totalRevenue + summary.totalCommission + summary.totalShipping;
       return summary;
     });
+
+    Logger.info(`計算完了: ${results.length} 件のSKUサマリーを生成しました。`);
+    return results;
   }
 }

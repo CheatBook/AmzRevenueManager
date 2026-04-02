@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/handlers/*.ts --bundle --minify --sourcemap --platform=node --target=es2022 --outdir=dist/handlers",
+    "build": "esbuild src/handlers/**/*.ts --bundle --minify --sourcemap --platform=node --target=es2022 --outdir=dist/handlers",
     "watch": "tsc -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
