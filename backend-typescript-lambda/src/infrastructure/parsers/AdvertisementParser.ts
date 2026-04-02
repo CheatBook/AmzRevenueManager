@@ -24,6 +24,7 @@ export class AdvertisementParser {
       const results = records.map((record: any) => ({
         date: record['日付'],
         campaignName: record['キャンペーン名'],
+        parentSku: '', // 後でマッピングされるため、初期値は空
         adCost: parseFloat(record['広告費']) || 0,
       }));
 

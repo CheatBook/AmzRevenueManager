@@ -55,7 +55,7 @@ export class HierarchicalRevenueSummaryService {
       const childrenSummaries: SkuRevenueSummary[] = [];
       for (const childSku of childSkus) {
         const childSummary = skuSummaryMap.get(childSku) || this.createEmptySummary(childSku, skuToNameMap.get(childSku) || "");
-        childrenSummaries.add(childSummary);
+        childrenSummaries.push(childSummary);
         processedSkus.add(childSku);
 
         // 子の値を親に加算
